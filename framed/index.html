@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini FRAMED 5 Imagens - TMDB</title>
+<style>
+body{
+  margin:0;
+  background:#121212;
+  color:#fff;
+  font-family:Arial, sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px;
+}
+h1{margin-bottom:10px;text-align:center;}
+#frame{
+  max-width:90%;
+  max-height:70vh;
+  border-radius:10px;
+  margin:20px 0;
+  filter:blur(12px);
+  transition:.4s;
+  object-fit:cover;
+}
+button{
+  padding:10px 20px;
+  margin:6px;
+  border:none;
+  border-radius:6px;
+  font-weight:bold;
+  cursor:pointer;
+  background:#2ecc71;
+  color:#000;
+}
+#answer{
+  font-size:24px;
+  margin-top:10px;
+  font-weight:bold;
+}
+#counter{
+  margin-top:5px;
+  font-size:16px;
+}
+</style>
+</head>
+<body>
+
+<h1>🎬 Adivinhe o Filme</h1>
+
+<img id="frame" src="" alt="Cena do filme">
+<div id="counter"></div>
+
+<div>
+  <button id="prev">Voltar</button>
+  <button id="reveal">Revelar Resposta</button>
+  <button id="next">Próximo</button>
+</div>
+
+<div id="answer"></div>
+
+<script>
+const API_KEY = "69f20920b621de40289df7481ea14b29";
+const IMG_BASE = "https://image.tmdb.org/t/p/original";
+
+let currentMovie = null;
+let images = [];
+let step = 0;
+
+async function getRandomMovie(){
+  const page = Math.floor(Math.random()*500)+1;
+  const res = await fetch(
+    `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=pt-BR&sort_by=popularity.desc&page=${page}`
+  );
+  const data = await res.json();
+  const movie = data.results[Math.floor(Math.random()*data.results.length)];
+  return movie;
+}
+
+async function getImagesForMovie(movie){
+  try{
+    const res = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/images?api_key=${API_KEY}`);
+    const data = await res.json();
+    let imgs = data.backdrops;
+
+    // fallback para poster
+    if(!imgs || imgs.length === 0){
+      if(movie.poster_path){
+        imgs = [{file_path: movie.poster_path}];
+      } else {
+        imgs = [];
+      }
+    }
+
+    // randomiza e pega 5 imagens
+    if(imgs.length > 5) imgs = imgs.sort(()=>0.5-Math.random()).slice(0,5);
+
+    // garante 5 imagens
+    while(imgs.length < 5){
+      imgs.push(imgs[0]);
+    }
+
+    return imgs.map(i => IMG_BASE + i.file_path);
+  } catch(e){
+    console.error("Erro ao buscar imagens:", e);
+    return [];
+  }
+}
+
+async function newRound(){
+  document.getElementById("answer").innerText = "";
+  step = 0;
+  document.getElementById("counter").innerText = `Imagem 1/5`;
+
+  currentMovie = await getRandomMovie();
+  images = await getImagesForMovie(currentMovie);
+
+  if(images.length === 0){
+    console.log("Filme sem imagens, tentando outro...");
+    return newRound();
+  }
+
+  showImage();
+}
+
+function showImage(){
+  const img = document.getElementById("frame");
+  img.src = images[step];
+  if(step < 4){
+    img.style.filter = "blur(12px)";
+  } else {
+    img.style.filter = "blur(0)";
+  }
+  document.getElementById("counter").innerText = `Imagem ${step+1}/5`;
+}
+
+// Botões
+document.getElementById("next").onclick = () => {
+  if(step < 4){
+    step++;
+    showImage();
+  }
+};
+
+document.getElementById("prev").onclick = () => {
+  if(step > 0){
+    step--;
+    showImage();
+  }
+};
+
+document.getElementById("reveal").onclick = () => {
+  step = 4;
+  showImage();
+  document.getElementById("answer").innerText = currentMovie.title;
+};
+
+// inicia primeira rodada
+newRound();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TierMaker Stable+</title>
+
+<style>
+:root{
+  --bg:#121212;--row:#1e1e1e;--pool:#0e0e0e;--btn:#2ecc71;--text:#fff
+}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:Arial;margin:0;padding:20px
+}
+.header-title{
+  text-align:center;font-size:32px;font-weight:bold;margin-bottom:12px
+}
+.controls{text-align:center;margin-bottom:15px}
+button{
+  background:var(--btn);border:none;
+  padding:10px 14px;margin:4px;
+  font-weight:bold;cursor:pointer
+}
+.tier{display:flex;margin-bottom:6px}
+.label{
+  width:160px;min-height:90px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;font-weight:bold;
+  color:#000;text-align:center;
+  word-break:break-word
+}
+.row{
+  flex:1;background:var(--row);
+  display:flex;gap:6px;
+  padding:6px;min-height:90px
+}
+.deleteBtn{background:#e74c3c;margin-left:6px}
+.pool{
+  background:var(--pool);padding:10px;
+  display:flex;gap:6px;
+  flex-wrap:wrap;margin-top:20px
+}
+.img-wrapper{
+  position:relative;width:60px;height:60px
+}
+.img-wrapper img{
+  width:100%;height:100%;object-fit:cover
+}
+.remove-img{
+  position:absolute;top:-6px;right:-6px;
+  width:18px;height:18px;
+  background:#e74c3c;border-radius:50%;
+  font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer
+}
+.modal{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.85);
+  align-items:center;justify-content:center;
+  z-index:1000
+}
+.modal-content{
+  background:#1e1e1e;padding:20px;
+  border-radius:8px;width:260px
+}
+.color-grid{
+  display:grid;
+  grid-template-columns:repeat(6,1fr);
+  gap:8px;margin:15px 0
+}
+.color{
+  width:30px;height:30px;
+  border-radius:4px;cursor:pointer
+}
+.option{
+  padding:10px;margin:6px 0;
+  background:#2a2a2a;
+  border-radius:6px;
+  text-align:center;cursor:pointer
+}
+</style>
+</head>
+
+<body>
+
+<div class="header-title" contenteditable id="title">
+Minha Tier List
+</div>
+
+<div class="controls">
+  <button id="addTier">Criar bloco</button>
+  <button id="templateBtn">Categorias</button>
+  <button id="themeBtn">Temas</button>
+  <button id="exportBtn">Exportar PNG</button>
+  <input type="file" id="upload" multiple accept="image/*">
+</div>
+
+<div id="tiers"></div>
+<div class="pool" id="pool"></div>
+
+<!-- MODAL BLOCO -->
+<div class="modal" id="tierModal">
+  <div class="modal-content">
+    <strong>Cor do bloco</strong>
+    <div class="color-grid" id="colorGrid"></div>
+    <button id="confirmTier">Criar bloco</button>
+  </div>
+</div>
+
+<!-- MODAL TEMAS -->
+<div class="modal" id="themeModal">
+  <div class="modal-content">
+    <strong>Temas</strong>
+    <div class="option" onclick="setTheme('dark')">🌑 Dark</div>
+    <div class="option" onclick="setTheme('purple')">🟣 Roxo</div>
+    <div class="option" onclick="setTheme('green')">🟢 Verde</div>
+    <div class="option" onclick="setTheme('orange')">🟠 Laranja</div>
+  </div>
+</div>
+
+<!-- MODAL CATEGORIAS -->
+<div class="modal" id="templateModal">
+  <div class="modal-content">
+    <strong>Categorias</strong>
+    <div class="option" onclick="loadTemplate('games')">🎮 Games</div>
+    <div class="option" onclick="loadTemplate('movies')">🎬 Filmes</div>
+    <div class="option" onclick="loadTemplate('series')">📺 Séries</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+const tiers=document.getElementById('tiers');
+const pool=document.getElementById('pool');
+const colors=['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
+let selectedColor=colors[0];
+
+function initSortable(){
+  document.querySelectorAll('.row,.pool').forEach(el=>{
+    Sortable.create(el,{group:'shared',animation:150});
+  });
+}
+
+function createImg(src){
+  const w=document.createElement('div');
+  w.className='img-wrapper';
+  w.innerHTML=`<img src="${src}">
+  <div class="remove-img">×</div>`;
+  w.querySelector('.remove-img').onclick=()=>{
+    w.remove();
+    saveState();
+  };
+  return w;
+}
+
+function createTier(text='Novo',color=selectedColor){
+  const tier=document.createElement('div');
+  tier.className='tier';
+  tier.innerHTML=`
+    <div class="label" contenteditable style="background:${color}">${text}</div>
+    <div class="row"></div>
+    <button class="deleteBtn">X</button>
+  `;
+  tier.querySelector('.deleteBtn').onclick=()=>{
+    tier.remove();
+    saveState();
+  };
+  tiers.appendChild(tier);
+  initSortable();
+  saveState();
+}
+
+document.getElementById('addTier').onclick=()=>{
+  const g=document.getElementById('colorGrid');
+  g.innerHTML='';
+  colors.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='color';d.style.background=c;
+    d.onclick=()=>selectedColor=c;
+    g.appendChild(d);
+  });
+  tierModal.style.display='flex';
+};
+
+document.getElementById('confirmTier').onclick=()=>{
+  createTier();
+  tierModal.style.display='none';
+};
+
+document.getElementById('upload').onchange=function(){
+  [...this.files].forEach(f=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      pool.appendChild(createImg(e.target.result));
+      initSortable();
+      saveState();
+    };
+    r.readAsDataURL(f);
+  });
+  this.value='';
+};
+
+document.getElementById('exportBtn').onclick=()=>{
+  html2canvas(document.body,{scale:2}).then(c=>{
+    const a=document.createElement('a');
+    a.download='tierlist.png';
+    a.href=c.toDataURL();
+    a.click();
+  });
+};
+
+document.getElementById('themeBtn').onclick=()=>themeModal.style.display='flex';
+document.getElementById('templateBtn').onclick=()=>templateModal.style.display='flex';
+document.querySelectorAll('.modal').forEach(m=>{
+  m.onclick=e=>e.target===m&&(m.style.display='none');
+});
+
+function setTheme(t){
+  const themes={
+    dark:['#121212','#1e1e1e','#0e0e0e','#2ecc71'],
+    purple:['#1a1325','#2a1f3d','#140e1f','#9b59b6'],
+    green:['#10231a','#1e3d2b','#0b1812','#2ecc71'],
+    orange:['#2b1607','#402008','#1d0e04','#e67e22']
+  }[t];
+  ['--bg','--row','--pool','--btn']
+    .forEach((v,i)=>document.documentElement.style.setProperty(v,themes[i]));
+  saveState();
+}
+
+function loadTemplate(type){
+  tiers.innerHTML='';
+  const presets={
+    games:['S','A','B','C','D'],
+    movies:['Masterpiece','Great','Good','Ok','Bad'],
+    series:['Excelente','Bom','Médio','Ruim']
+  }[type];
+  presets.forEach((t,i)=>createTier(t,colors[i%colors.length]));
+  templateModal.style.display='none';
+  saveState();
+}
+
+/* ======================
+   AUTO-SAVE EM JSON
+====================== */
+
+function getState(){
+  return{
+    title:title.innerText,
+    tiers:[...tiers.children].map(t=>({
+      label:t.querySelector('.label').innerText,
+      color:t.querySelector('.label').style.background,
+      images:[...t.querySelectorAll('img')].map(i=>i.src)
+    })),
+    pool:[...pool.querySelectorAll('img')].map(i=>i.src),
+    theme:getComputedStyle(document.documentElement).getPropertyValue('--bg')
+  };
+}
+
+function saveState(){
+  localStorage.setItem('tier_state',JSON.stringify(getState()));
+}
+
+function loadState(){
+  const data=localStorage.getItem('tier_state');
+  if(!data) return;
+  const s=JSON.parse(data);
+
+  title.innerText=s.title;
+  tiers.innerHTML='';
+  pool.innerHTML='';
+
+  s.tiers.forEach(t=>{
+    createTier(t.label,t.color);
+    const row=tiers.lastElementChild.querySelector('.row');
+    t.images.forEach(src=>row.appendChild(createImg(src)));
+  });
+
+  s.pool.forEach(src=>pool.appendChild(createImg(src)));
+  initSortable();
+}
+
+document.getElementById('title').addEventListener('input',saveState);
+new MutationObserver(saveState)
+  .observe(document.body,{childList:true,subtree:true});
+
+createTier('S','#ff4d4d');
+createTier('A','#ff9f1a');
+loadState();
+initSortable();
+
+/* ===== AUTO SAVE PASSIVO ===== */
+
+function saveState(){
+  const state = {
+    title: title.innerText,
+    html: {
+      tiers: tiers.innerHTML,
+      pool: pool.innerHTML
+    }
+  };
+  localStorage.setItem('tier_state', JSON.stringify(state));
+}
+
+function loadState(){
+  const data = localStorage.getItem('tier_state');
+  if(!data) return;
+
+  const state = JSON.parse(data);
+  title.innerText = state.title;
+  tiers.innerHTML = state.html.tiers;
+  pool.innerHTML = state.html.pool;
+
+  initSortable();
+}
+
+/* hooks */
+title.addEventListener('input', saveState);
+
+document.addEventListener('click', e=>{
+  if(
+    e.target.matches('button') ||
+    e.target.matches('.remove-img')
+  ){
+    setTimeout(saveState, 50);
+  }
+});
+
+document.getElementById('upload')
+  .addEventListener('change', ()=>setTimeout(saveState, 100));
+
+window.addEventListener('load', loadState);
+</script>
+
+</body>
+</html>
