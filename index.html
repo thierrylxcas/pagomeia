@@ -1,50 +1,81 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PagoMeia GAMES</title>
+<title>Menu Moderno</title>
 <style>
-body{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  background:#121212;
-  color:#fff;
-  font-family:Poppins, sans-serif;
-}
-h1{margin-bottom:20px;}
-a{
-  display:block;
-  margin:10px;
-  padding:15px 25px;
-  background:#2ecc71;
-  color:#000;
-  text-decoration:none;
-  border-radius:8px;
-  font-weight:bold;
-}
-a:hover{background:#27ae60;}
+  /* Fundo degradê laranja/amarelo */
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #FF8C00, #FFD700);
+  }
+
+  /* Container central */
+  .menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+    text-align: center;
+  }
+
+  h1 {
+    font-size: 3em;
+    color: #5D3A8C; /* roxo escuro */
+    text-shadow: 2px 2px #00000050;
+    margin-bottom: 20px;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .menu-button {
+    padding: 15px 40px;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #5D3A8C;
+    background-color: #FFFFFF20; /* leve transparência */
+    border: 3px solid #5D3A8C;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    min-width: 200px;
+  }
+
+  .menu-button:hover {
+    background-color: #5D3A8C;
+    color: #FFD700;
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+  }
+
+  /* Responsivo */
+  @media (max-width: 600px) {
+    h1 { font-size: 2em; }
+    .menu-button { font-size: 1.2em; padding: 12px 30px; min-width: 150px; }
+  }
 </style>
 </head>
 <body>
+
+<div class="menu-container">
 <h1>ESCOLHA UM GAME</h1>
 <a href="./tierlist/index.html" target="_blank">📋 TIERLIST</a>
 <a href="./quiz/quizbr.html" target="_blank">🎬 Quiz do BRAZA</a>
 <a href="./framed/index.html" target="_blank">🎬 FRAMED</a>
+</div>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
