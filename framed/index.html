@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PagoMeia Frames Pixel</title>
+<title>PagoMeia Frames</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body{
@@ -128,8 +128,8 @@ input[type=text]::placeholder{
 </div>
 
 <div style="margin-top:10px;">
-  <input type="text" placeholder="Digite o nome do filme">
-  <button>Enviar</button>
+  <input type="text" id="movieInput" placeholder="Digite o nome do filme">
+  <button id="submitBtn">Enviar</button>
 </div>
 
 <div id="answer"></div>
@@ -158,21 +158,14 @@ async function getImagesForMovie(movie){
     const data = await res.json();
     let imgs = data.backdrops || [];
 
-    // Filtra imagens que contenham o título no URL
-    imgs = imgs.filter(i => !i.file_path.toLowerCase().includes(movie.title.toLowerCase().replace(/\s/g, "")));
-
-    // fallback para poster
     if(imgs.length === 0 && movie.poster_path){
       imgs = [{file_path: movie.poster_path}];
     }
 
-    // descarta filmes com menos de 3 imagens
     if(imgs.length < 3) return [];
 
-    // randomiza e pega até 5 imagens
     imgs = imgs.sort(()=>0.5-Math.random()).slice(0,5);
 
-    // garante 5 imagens
     while(imgs.length < 5){
       imgs.push(imgs[0]);
     }
@@ -207,7 +200,7 @@ function showImage(){
   document.getElementById("counter").innerText = `Imagem ${step+1}/5`;
 }
 
-// Botões
+// Botões de navegação
 document.getElementById("next").onclick = () => {
   if(step < 4){
     step++;
@@ -226,6 +219,31 @@ document.getElementById("reveal").onclick = () => {
   step = 4;
   showImage();
   document.getElementById("answer").innerText = currentMovie.title;
+};
+
+// Verificação de resposta
+const input = document.getElementById("movieInput");
+const submitBtn = document.getElementById("submitBtn");
+const answerDiv = document.getElementById("answer");
+
+submitBtn.onclick = () => {
+  const userAnswer = input.value.trim().toLowerCase();
+  const correctAnswer = currentMovie.title.trim().toLowerCase();
+
+  if(userAnswer === ""){
+    answerDiv.innerText = "Digite algo!";
+    return;
+  }
+
+  if(userAnswer === correctAnswer){
+    answerDiv.innerText = `✅ Acertou! O filme é "${currentMovie.title}"`;
+    step = 4;
+    showImage();
+  } else {
+    answerDiv.innerText = "❌ PERDEU AMIGO";
+  }
+
+  input.value = "";
 };
 
 // inicia primeira rodada
