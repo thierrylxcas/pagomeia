@@ -48,7 +48,7 @@ h1{
   transition: all 0.3s ease;
 }
 
-#counter{
+#counter, #tries{
   margin-top:6px;
   color:#ffd700;
   text-shadow: 1px 1px #000;
@@ -118,7 +118,8 @@ input[type=text]::placeholder{
 
 <div id="frame-container">
   <img id="frame" src="" alt="Cena do filme">
-  <div id="counter">1/5</div>
+  <div id="counter">Imagem 1/5</div>
+  <div id="tries">Tentativas restantes: 4</div>
 </div>
 
 <div class="buttons">
@@ -141,6 +142,7 @@ const IMG_BASE = "https://image.tmdb.org/t/p/original";
 let currentMovie = null;
 let images = [];
 let step = 0;
+let triesLeft = 4;
 
 async function getRandomMovie(){
   const page = Math.floor(Math.random()*500)+1;
@@ -180,7 +182,9 @@ async function getImagesForMovie(movie){
 async function newRound(){
   document.getElementById("answer").innerText = "";
   step = 0;
+  triesLeft = 4;
   document.getElementById("counter").innerText = `Imagem 1/5`;
+  document.getElementById("tries").innerText = `Tentativas restantes: ${triesLeft}`;
 
   currentMovie = await getRandomMovie();
   images = await getImagesForMovie(currentMovie);
@@ -221,10 +225,11 @@ document.getElementById("reveal").onclick = () => {
   document.getElementById("answer").innerText = currentMovie.title;
 };
 
-// Verificação de resposta
+// Verificação de resposta com tentativas extras
 const input = document.getElementById("movieInput");
 const submitBtn = document.getElementById("submitBtn");
 const answerDiv = document.getElementById("answer");
+const triesDiv = document.getElementById("tries");
 
 submitBtn.onclick = () => {
   const userAnswer = input.value.trim().toLowerCase();
@@ -235,12 +240,21 @@ submitBtn.onclick = () => {
     return;
   }
 
-  if(userAnswer === correctAnswer){
+  if(correctAnswer.includes(userAnswer)){
     answerDiv.innerText = `✅ Acertou! O filme é "${currentMovie.title}"`;
     step = 4;
     showImage();
   } else {
-    answerDiv.innerText = "❌ PERDEU AMIGO";
+    triesLeft--;
+    if(triesLeft > 0){
+      answerDiv.innerText = `❌ Errado! Tente novamente.`;
+      triesDiv.innerText = `Tentativas restantes: ${triesLeft}`;
+    } else {
+      answerDiv.innerText = `❌ PERDEU! O filme era "${currentMovie.title}"`;
+      step = 4;
+      showImage();
+      triesDiv.innerText = `Tentativas esgotadas`;
+    }
   }
 
   input.value = "";
