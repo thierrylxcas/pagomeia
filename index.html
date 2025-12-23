@@ -9,7 +9,7 @@
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Press Start 2P', cursive; /* Fonte pixel */
+    font-family: 'Press Start 2P', cursive;
     height: 100vh;
     display: flex;
     justify-content: center;
@@ -27,32 +27,38 @@
 
   h1 {
     font-size: 2em;
-    color: #FFED29; /* roxo */
-    text-shadow: 3px 3px #00000080; /* sombra pixel */
+    color: #FFED29;
+    text-shadow: 3px 3px #00000080;
     margin-bottom: 20px;
   }
 
   .menu-button {
+    position: relative;
     padding: 15px 40px;
     font-size: 0.8em;
-    color: #000000;
-    background-color: #FFED29;
+    color: #ffffff;
+    background-color: #e6b800; /* amarelo mais escuro */
     border: 3px solid #5D3A8C;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
     text-decoration: none;
     display: inline-block;
     min-width: 250px;
     text-align: center;
-    transition: all 0.2s ease;
-    box-shadow: 4px 4px 0px #000; /* efeito pixelado */
+    transition: all 0.3s ease;
+    box-shadow: 6px 6px 0px #000; /* sombra projetada */
+    text-shadow:
+      -2px -2px 0 #000,
+       2px -2px 0 #000,
+      -2px  2px 0 #000,
+       2px  2px 0 #000; /* contorno preto */
   }
 
   .menu-button:hover {
-    background-color: #5D3A8C;
-    color: #FFD700;
-    transform: translateY(-4px);
-    box-shadow: 6px 6px 0px #000;
+    transform: translateY(-6px) scale(1.05); /* animação leve de pop */
+    box-shadow: 10px 10px 0px #000;
+    background-color: #d4a500;
+    color: #ffffff;
   }
 
   /* Indicador de seleção estilo game */
@@ -75,14 +81,11 @@
 <body>
 
 <div class="menu-container">
-<h1>ESCOLHA UM GAME</h1>
-<a href="./tierlist/index.html" target="_blank">📋 TIERLIST</a>
-<a href="./quiz/quizbr.html" target="_blank">🎬 Quiz do BRAZA</a>
-<a href="./framed/index.html" target="_blank">🎬 FRAMED</a>
+  <h1>ESCOLHA UM GAME</h1>
+  <a href="./tierlist/index.html" target="_blank" class="menu-button">📋 TIERLIST</a>
+  <a href="./quiz/quizbr.html" target="_blank" class="menu-button">🎬 Quiz do BRAZA</a>
+  <a href="./framed/index.html" target="_blank" class="menu-button">🎬 FRAMED</a>
 </div>
 
 </body>
 </html>
-
-
-
