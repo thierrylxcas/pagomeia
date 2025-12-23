@@ -3,46 +3,112 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PagoMeia Frames</title>
+<title>PagoMeia Frames Pixel</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body{
   margin:0;
-  background:#121212;
+  background:#2b004b; /* roxo escuro */
   color:#fff;
-  font-family:Arial, sans-serif;
+  font-family:'Press Start 2P', cursive;
   display:flex;
   flex-direction:column;
   align-items:center;
   padding:20px;
 }
-h1{margin-bottom:10px;text-align:center;}
-#frame{
-  max-width:90%;
-  max-height:70vh;
-  border-radius:10px;
-  margin:20px 0;
-  filter:blur(12px);
-  transition:.4s;
-  object-fit:cover;
+
+h1{
+  margin-bottom:10px;
+  text-align:center;
+  color:#ffd700;
+  text-shadow: 2px 2px #000;
 }
+
+#frame-container{
+  width:90%;
+  max-width:800px;
+  background:#5a0080;
+  padding:8px;
+  border:4px solid #ffd700;
+  border-radius:4px;
+  box-shadow:6px 6px 0px #000;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+#frame{
+  width:100%;
+  max-height:60vh;
+  object-fit:cover;
+  border:2px solid #ffd700;
+  border-radius:2px;
+  image-rendering: pixelated;
+  filter:blur(12px);
+  transition: all 0.3s ease;
+}
+
+#counter{
+  margin-top:6px;
+  color:#ffd700;
+  text-shadow: 1px 1px #000;
+  animation: pulse 1.5s infinite alternate;
+}
+
+#answer{
+  font-size:16px;
+  margin-top:10px;
+  color:#ffffff;
+  text-shadow: 2px 2px #000;
+}
+
+.buttons{
+  margin-top:12px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  justify-content:center;
+}
+
 button{
   padding:10px 20px;
-  margin:6px;
-  border:none;
-  border-radius:6px;
-  font-weight:bold;
+  font-family:'Press Start 2P', cursive;
+  font-size:0.7em;
+  color:#fff;
+  background:#ffd700;
+  border:3px solid #5a0080;
   cursor:pointer;
-  background:#2ecc71;
-  color:#000;
+  box-shadow: 4px 4px 0px #000;
+  transition: all 0.2s ease;
 }
-#answer{
-  font-size:24px;
-  margin-top:10px;
-  font-weight:bold;
+
+button:hover{
+  background:#5a0080;
+  color:#ffd700;
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 6px 6px 0px #000;
 }
-#counter{
-  margin-top:5px;
-  font-size:16px;
+
+input[type=text]{
+  padding:10px;
+  font-family:'Press Start 2P', cursive;
+  border:3px solid #ffd700;
+  border-radius:4px;
+  width:60%;
+  max-width:300px;
+  background:#2b004b;
+  color:#fff;
+  box-shadow: 4px 4px 0px #000;
+}
+
+input[type=text]::placeholder{
+  color:#ffd700;
+  opacity:0.7;
+}
+
+@keyframes pulse{
+  0% {transform: scale(1);}
+  100% {transform: scale(1.1);}
 }
 </style>
 </head>
@@ -50,13 +116,20 @@ button{
 
 <h1>🎬 Adivinhe o Filme</h1>
 
-<img id="frame" src="" alt="Cena do filme">
-<div id="counter"></div>
+<div id="frame-container">
+  <img id="frame" src="" alt="Cena do filme">
+  <div id="counter">1/5</div>
+</div>
 
-<div>
+<div class="buttons">
   <button id="prev">Voltar</button>
   <button id="reveal">Revelar Resposta</button>
   <button id="next">Próximo</button>
+</div>
+
+<div style="margin-top:10px;">
+  <input type="text" placeholder="Digite o nome do filme">
+  <button>Enviar</button>
 </div>
 
 <div id="answer"></div>
@@ -83,19 +156,21 @@ async function getImagesForMovie(movie){
   try{
     const res = await fetch(`https://api.themoviedb.org/3/movie/${movie.id}/images?api_key=${API_KEY}`);
     const data = await res.json();
-    let imgs = data.backdrops;
+    let imgs = data.backdrops || [];
+
+    // Filtra imagens que contenham o título no URL
+    imgs = imgs.filter(i => !i.file_path.toLowerCase().includes(movie.title.toLowerCase().replace(/\s/g, "")));
 
     // fallback para poster
-    if(!imgs || imgs.length === 0){
-      if(movie.poster_path){
-        imgs = [{file_path: movie.poster_path}];
-      } else {
-        imgs = [];
-      }
+    if(imgs.length === 0 && movie.poster_path){
+      imgs = [{file_path: movie.poster_path}];
     }
 
-    // randomiza e pega 5 imagens
-    if(imgs.length > 5) imgs = imgs.sort(()=>0.5-Math.random()).slice(0,5);
+    // descarta filmes com menos de 3 imagens
+    if(imgs.length < 3) return [];
+
+    // randomiza e pega até 5 imagens
+    imgs = imgs.sort(()=>0.5-Math.random()).slice(0,5);
 
     // garante 5 imagens
     while(imgs.length < 5){
@@ -118,7 +193,7 @@ async function newRound(){
   images = await getImagesForMovie(currentMovie);
 
   if(images.length === 0){
-    console.log("Filme sem imagens, tentando outro...");
+    console.log("Filme sem imagens válidas, tentando outro...");
     return newRound();
   }
 
@@ -128,11 +203,7 @@ async function newRound(){
 function showImage(){
   const img = document.getElementById("frame");
   img.src = images[step];
-  if(step < 4){
-    img.style.filter = "blur(12px)";
-  } else {
-    img.style.filter = "blur(0)";
-  }
+  img.style.filter = step < 4 ? "blur(12px)" : "blur(0)";
   document.getElementById("counter").innerText = `Imagem ${step+1}/5`;
 }
 
@@ -163,4 +234,3 @@ newRound();
 
 </body>
 </html>
-
