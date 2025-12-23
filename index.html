@@ -3,68 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PagoMeia GAMES</title>
+<title>PagoMeia Games</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-  /* Fundo degradê laranja/amarelo */
   body {
     margin: 0;
     padding: 0;
-    font-family: 'Arial', sans-serif;
+    font-family: 'Press Start 2P', cursive; /* Fonte pixel */
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    background: linear-gradient(135deg, #FF8C00, #FFD700);
+    background: linear-gradient(135deg, #FF8C00, #FFA500, #FFD700); /* degradê laranja/amarelo */
   }
 
-  /* Container central */
   .menu-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 25px;
+    gap: 30px;
     text-align: center;
   }
 
   h1 {
-    font-size: 3em;
-    color: #5D3A8C; /* roxo escuro */
-    text-shadow: 2px 2px #00000050;
+    font-size: 2em;
+    color: #5D3A8C; /* roxo */
+    text-shadow: 3px 3px #00000080; /* sombra pixel */
     margin-bottom: 20px;
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.05); }
   }
 
   .menu-button {
     padding: 15px 40px;
-    font-size: 1.5em;
-    font-weight: bold;
+    font-size: 0.8em;
     color: #5D3A8C;
-    background-color: #FFFFFF20; /* leve transparência */
+    background-color: #FFFFFF20;
     border: 3px solid #5D3A8C;
-    border-radius: 12px;
+    border-radius: 6px;
     cursor: pointer;
-    transition: all 0.3s ease;
     text-decoration: none;
     display: inline-block;
-    min-width: 200px;
+    min-width: 250px;
+    text-align: center;
+    transition: all 0.2s ease;
+    box-shadow: 4px 4px 0px #000; /* efeito pixelado */
   }
 
   .menu-button:hover {
     background-color: #5D3A8C;
     color: #FFD700;
-    transform: translateY(-5px) scale(1.05);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+    transform: translateY(-4px);
+    box-shadow: 6px 6px 0px #000;
+  }
+
+  /* Indicador de seleção estilo game */
+  .menu-button::before {
+    content: "▶ ";
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .menu-button:hover::before {
+    opacity: 1;
   }
 
   /* Responsivo */
   @media (max-width: 600px) {
-    h1 { font-size: 2em; }
-    .menu-button { font-size: 1.2em; padding: 12px 30px; min-width: 150px; }
+    h1 { font-size: 1.5em; }
+    .menu-button { font-size: 0.7em; min-width: 180px; padding: 12px 25px; }
   }
 </style>
 </head>
@@ -79,4 +83,5 @@
 
 </body>
 </html>
+
 
