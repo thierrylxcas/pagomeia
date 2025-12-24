@@ -77,7 +77,7 @@ header{
 
 .year{
   font-size:12px;
-  opacity:.8;
+  opacity:.85;
   margin-top:6px;
   visibility:hidden;
 }
@@ -154,7 +154,9 @@ let dragged = null;
 let placeholder = null;
 
 let movieQueue = [];
-let page = 1;
+let usedIds = new Set();
+
+const decades = [1940,1950,1960,1970,1980,1990,2000,2010,2020];
 
 const timeline = document.getElementById("timeline");
 const current = document.getElementById("current");
@@ -164,29 +166,39 @@ function updateHUD(){
   document.getElementById("score").innerText = score;
 }
 
-async function fetchMovies(){
-  const type = Math.random() > 0.5 ? "popular" : "top_rated";
+function randomDecade(){
+  return decades[Math.floor(Math.random() * decades.length)];
+}
+
+async function fetchDecade(decade){
+  const yearStart = decade;
+  const yearEnd = decade + 9;
+
+  const page = Math.floor(Math.random() * 5) + 1;
+
   const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${type}?api_key=${API_KEY}&page=${page}&language=pt-BR`
+    `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${yearStart}-01-01&primary_release_date.lte=${yearEnd}-12-31&sort_by=popularity.desc&page=${page}`
   );
+
   const data = await res.json();
-  page++;
 
   const filtered = data.results.filter(m =>
     m.poster_path &&
     m.release_date &&
-    parseInt(m.release_date) > 1930 &&
-    m.popularity > 20
+    m.popularity > 20 &&
+    !usedIds.has(m.id)
   );
 
   movieQueue.push(...filtered);
 }
 
 async function getNextMovie(){
-  if(movieQueue.length < 5){
-    await fetchMovies();
+  while(movieQueue.length < 5){
+    await fetchDecade(randomDecade());
   }
-  return movieQueue.shift();
+  const movie = movieQueue.shift();
+  usedIds.add(movie.id);
+  return movie;
 }
 
 async function createCard(movie, reveal){
@@ -235,8 +247,8 @@ timeline.addEventListener("drop", ()=>{
 
   timeline.insertBefore(dragged, placeholder);
   placeholder.remove();
-  dragged.querySelector(".year").classList.add("show");
 
+  dragged.querySelector(".year").classList.add("show");
   validate();
 });
 
@@ -260,7 +272,6 @@ function validate(){
   if(JSON.stringify(years) === JSON.stringify(sorted)){
     score += Math.max(5, 15 - difficulty);
     difficulty++;
-    nextMovie();
   }else{
     lives--;
     dragged.querySelector(".year").classList.add("wrong");
@@ -269,11 +280,10 @@ function validate(){
     if(lives <= 0){
       alert("💀 GAME OVER\nPontuação: " + score);
       location.reload();
-    }else{
-      timeline.removeChild(dragged);
-      nextMovie();
+      return;
     }
   }
+  nextMovie();
 }
 
 async function nextMovie(){
@@ -285,9 +295,8 @@ async function nextMovie(){
 }
 
 (async()=>{
-  await fetchMovies();
-  const first = await getNextMovie();
-  const firstCard = await createCard(first, true);
+  const firstMovie = await getNextMovie();
+  const firstCard = await createCard(firstMovie, true);
   timeline.appendChild(firstCard);
   nextMovie();
 })();
