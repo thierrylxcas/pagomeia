@@ -242,7 +242,16 @@ document.querySelectorAll('.modal').forEach(m=>{
 
 title.addEventListener('input',saveState);
 window.addEventListener('load',loadState);
+
+// remove texto "undefined" perdido no DOM
+document.body.childNodes.forEach(n=>{
+  if(n.nodeType === 3 && n.textContent.trim() === 'undefined'){
+    n.remove();
+  }
+});
+
 </script>
 
 </body>
 </html>
+
