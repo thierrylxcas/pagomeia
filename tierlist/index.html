@@ -237,8 +237,9 @@ function loadState(){
 templateBtn.onclick=()=>templateModal.style.display='flex';
 themeBtn.onclick=()=>themeModal.style.display='flex';
 document.querySelectorAll('.modal').forEach(m=>{
-  m.onclick=e=>e.target===m&&(m.style.display='none');
-});
+m.onclick = e => {
+  if (e.target === m) m.style.display = 'none';
+};
 
 title.addEventListener('input',saveState);
 window.addEventListener('load',loadState);
@@ -253,5 +254,6 @@ document.body.childNodes.forEach(n=>{
 
 </body>
 </html>
+
 
 
