@@ -1,211 +1,204 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>MeiaTrivia • PagoMeia</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MovieTrivia • História do Cinema</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
 
 <style>
 :root{
   --bg:#0f0f14;
-  --card:#1b1b24;
-  --accent:#8b5cf6;
-  --error:#ef4444;
-  --line:#4b5563;
+  --card:#1b1b26;
+  --purple:#7f3dff;
+  --purple2:#a57bff;
+  --text:#fff;
 }
 
-*{box-sizing:border-box;touch-action:none}
+*{box-sizing:border-box}
 
 body{
   margin:0;
-  background:radial-gradient(circle at top,#1c1c2b,#0f0f14);
-  font-family:Inter,Arial,sans-serif;
-  color:#fff;
+  font-family:'Montserrat',sans-serif;
+  background:radial-gradient(circle at top,#1b1038,var(--bg));
+  color:var(--text);
   display:flex;
   justify-content:center;
-  padding:20px;
+  padding:30px 20px;
 }
 
-.game{width:100%;max-width:1000px}
+.game{
+  max-width:900px;
+  width:100%;
+}
 
-/* TOP */
-.top{
+header{
   display:flex;
   justify-content:space-between;
-  margin-bottom:20px;
+  align-items:center;
+  margin-bottom:25px;
 }
 
-.hearts span{font-size:20px;margin-left:4px}
-.hearts .lost{opacity:.25}
-
-/* TIMELINE */
-.timeline-wrapper{
-  position:relative;
-  overflow-x:auto;
-  padding:60px 0 30px;
-}
-
-.timeline-line{
-  position:absolute;
-  top:95px;
-  left:0;
-  right:0;
-  height:2px;
-  background:linear-gradient(to right,transparent,var(--line),transparent);
-}
-
-.timeline{
+.stats{
   display:flex;
-  align-items:flex-start;
-  padding:0 20px;
+  gap:20px;
+  font-size:14px;
 }
 
-.timeline-item{
-  width:90px;
-  text-align:center;
-  position:relative;
-}
-
-.timeline-item::before{
-  content:"";
-  position:absolute;
-  top:-30px;
-  left:50%;
-  width:2px;
-  height:30px;
-  background:var(--line);
-}
-
-.timeline-item img{
-  width:100%;
-  border-radius:10px;
-  box-shadow:0 10px 25px rgba(0,0,0,.5);
-}
-
-.year{
-  margin-top:6px;
-  font-size:13px;
-  opacity:.85;
-}
-
-.year.error{
-  color:var(--error);
-  font-weight:700;
-}
-
-/* DROP ZONE */
-.drop-zone{
-  width:40px;
-  height:160px;
-}
-
-.drop-zone.active{
-  background:rgba(139,92,246,.2);
-  border-radius:10px;
-}
-
-/* CURRENT */
-.current{
-  width:150px;
-  margin:25px auto 0;
+.board{
   background:var(--card);
-  border-radius:14px;
-  overflow:hidden;
-  cursor:grab;
-  box-shadow:0 14px 35px rgba(0,0,0,.5);
-  position:relative;
+  border-radius:22px;
+  padding:25px;
+  box-shadow:0 0 40px rgba(127,61,255,.15);
 }
 
-.current.dragging{
-  opacity:.85;
-  position:fixed;
-  z-index:9999;
+.movies{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  flex-wrap:wrap;
+  margin-bottom:25px;
+}
+
+.movie{
+  width:140px;
+  text-align:center;
+  cursor:grab;
+  animation:fade .25s ease;
+}
+
+.movie img{
+  width:100%;
+  border-radius:14px;
+  box-shadow:0 8px 20px rgba(0,0,0,.6);
   pointer-events:none;
 }
 
-.current img{width:100%}
-.current h2{
-  font-size:14px;
-  padding:10px;
-  text-align:center;
+.movie p{
+  font-size:13px;
+  margin-top:8px;
 }
 
-/* GAME OVER */
-.game-over{
-  display:none;
-  text-align:center;
-  margin-top:25px;
+.timeline{
+  position:relative;
+  margin:20px 0;
+  padding:35px 10px;
 }
 
-.game-over button{
-  margin-top:12px;
-  padding:12px 22px;
-  background:var(--accent);
+.timeline::before{
+  content:"";
+  position:absolute;
+  top:50%;
+  left:0;
+  right:0;
+  height:4px;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(127,61,255,.35),
+    transparent
+  );
+}
+
+.timeline-zone{
+  display:flex;
+  justify-content:center;
+  gap:18px;
+  position:relative;
+  z-index:2;
+  min-height:190px;
+}
+
+button{
+  margin-top:20px;
+  padding:12px 26px;
   border:none;
-  border-radius:8px;
+  border-radius:999px;
+  background:linear-gradient(135deg,var(--purple),var(--purple2));
   color:#fff;
-  font-weight:bold;
+  font-weight:700;
   cursor:pointer;
+  transition:.25s;
+}
+
+button:hover{
+  transform:scale(1.05);
+}
+
+.placeholder{
+  opacity:.25;
+  border:2px dashed var(--purple);
+  border-radius:14px;
+}
+
+@keyframes fade{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1}
 }
 </style>
 </head>
-
 <body>
+
 <div class="game">
 
-  <div class="top">
-    <div>
-      Pontos: <span id="score">0</span> |
-      Recorde: <span id="highScore">0</span>
-    </div>
-    <div class="hearts" id="hearts"></div>
+<header>
+  <h1>🎬 MovieTrivia</h1>
+  <div class="stats">
+    <div>❌ Erros: <strong id="errors">0</strong></div>
+    <div>🏆 Recorde: <strong id="record">—</strong></div>
+  </div>
+</header>
+
+<div class="board">
+  <p>Arraste os filmes para a linha do tempo, do mais antigo ao mais recente.</p>
+
+  <div class="movies" id="movies"></div>
+
+  <div class="timeline">
+    <div class="timeline-zone" id="timeline"></div>
   </div>
 
-  <div class="timeline-wrapper">
-    <div class="timeline-line"></div>
-    <div class="timeline" id="timeline"></div>
-  </div>
-
-  <div class="current" id="current">
-    <img id="poster">
-    <h2 id="title"></h2>
-  </div>
-
-  <div class="game-over" id="gameOver">
-    <h2>💀 Game Over</h2>
-    <button onclick="restart()">Reiniciar</button>
-  </div>
+  <button onclick="checkOrder()">Confirmar ordem</button>
+</div>
 
 </div>
 
 <script>
-const API_KEY="69f20920b621de40289df7481ea14b29";
-const IMG="https://image.tmdb.org/t/p/w300";
+// =============================
+// TMDB
+// =============================
+const API_KEY = "69f20920b621de40289df7481ea14b29";
+const IMG = "https://image.tmdb.org/t/p/w500";
 
+// =============================
+// FILMES (história do cinema)
+// =============================
 const pool = [
-  {id:770, year:1939},
-  {id:539, year:1960},
-  {id:238, year:1972},
-  {id:11, year:1977},
-  {id:329, year:1993},
-  {id:603, year:1999},
-  {id:120, year:2001},
-  {id:19995, year:2009},
-  {id:299534, year:2019},
-  {id:872585, year:2023}
+  {id:770, year:1939},     // E o Vento Levou
+  {id:539, year:1960},     // Psicose
+  {id:238, year:1972},     // Poderoso Chefão
+  {id:11, year:1977},      // Star Wars
+  {id:329, year:1993},     // Jurassic Park
+  {id:603, year:1999},     // Matrix
+  {id:120, year:2001},     // Senhor dos Anéis
+  {id:19995, year:2009},   // Avatar
+  {id:299534, year:2019},  // Ultimato
+  {id:872585, year:2023}   // Oppenheimer
 ];
 
 let round = pool.slice(0,4);
 let errors = 0;
 let dragged = null;
-let placeholder;
+let placeholder = null;
 
 const record = localStorage.getItem("movieTriviaCinema");
 document.getElementById("record").innerText = record ?? "—";
 
+const moviesDiv = document.getElementById("movies");
+const timeline = document.getElementById("timeline");
+
+// =============================
 async function load(){
-  const moviesDiv = document.getElementById("movies");
-  const timeline = document.getElementById("timeline");
   moviesDiv.innerHTML = "";
   timeline.innerHTML = "";
 
@@ -231,31 +224,28 @@ async function load(){
   }
 }
 
+// =============================
+// DRAG UX BOM
+// =============================
 function addDragEvents(card){
-  card.addEventListener("dragstart", () => {
+  card.addEventListener("dragstart", ()=>{
     dragged = card;
     card.style.opacity = ".4";
 
     placeholder = document.createElement("div");
-    placeholder.className = "movie";
-    placeholder.style.opacity = ".25";
-    placeholder.style.border = "2px dashed #7f3dff";
-    placeholder.style.borderRadius = "14px";
-    placeholder.style.height = card.offsetHeight + "px";
+    placeholder.className = "movie placeholder";
     placeholder.style.width = card.offsetWidth + "px";
+    placeholder.style.height = card.offsetHeight + "px";
   });
 
-  card.addEventListener("dragend", () => {
+  card.addEventListener("dragend", ()=>{
     card.style.opacity = "1";
     placeholder?.remove();
     dragged = null;
   });
 }
 
-// TIMELINE INTELIGENTE
-const timeline = document.getElementById("timeline");
-
-timeline.addEventListener("dragover", e => {
+timeline.addEventListener("dragover", e=>{
   e.preventDefault();
   const after = getAfterElement(timeline, e.clientX);
   if(after == null){
@@ -265,27 +255,27 @@ timeline.addEventListener("dragover", e => {
   }
 });
 
-timeline.addEventListener("drop", e => {
+timeline.addEventListener("drop", e=>{
   e.preventDefault();
-  if(placeholder && dragged){
+  if(dragged && placeholder){
     timeline.insertBefore(dragged, placeholder);
     placeholder.remove();
   }
 });
 
 function getAfterElement(container, x){
-  const items = [...container.querySelectorAll(".movie:not(.dragging)")];
-
-  return items.reduce((closest, child) => {
+  const items = [...container.querySelectorAll(".movie:not(.placeholder)")];
+  return items.reduce((closest, child)=>{
     const box = child.getBoundingClientRect();
     const offset = x - box.left - box.width / 2;
     if(offset < 0 && offset > closest.offset){
       return {offset, element: child};
     }
     return closest;
-  }, {offset: Number.NEGATIVE_INFINITY}).element;
+  }, {offset:Number.NEGATIVE_INFINITY}).element;
 }
 
+// =============================
 function checkOrder(){
   const items = [...timeline.querySelectorAll(".movie")];
   if(items.length !== round.length){
@@ -293,11 +283,11 @@ function checkOrder(){
     return;
   }
 
-  const years = items.map(i => Number(i.dataset.year));
+  const years = items.map(i=>Number(i.dataset.year));
   const sorted = [...years].sort((a,b)=>a-b);
 
   if(JSON.stringify(years) === JSON.stringify(sorted)){
-    alert("🎉 Ordem correta!");
+    alert("🎉 Ordem correta! Cinema puro!");
     if(!record || errors < record){
       localStorage.setItem("movieTriviaCinema", errors);
     }
@@ -316,169 +306,5 @@ function checkOrder(){
 load();
 </script>
 
-/* UI */
-function renderHearts(){
-  hearts.innerHTML="";
-  for(let i=0;i<3;i++){
-    const s=document.createElement("span");
-    s.textContent="❤️";
-    if(i>=lives)s.classList.add("lost");
-    hearts.appendChild(s);
-  }
-}
-
-function loadHighScore(){
-  highScore.textContent=
-    localStorage.getItem("meiaTriviaHighScore")||0;
-}
-
-/* TMDB */
-async function loadPool(){
-  pool=[];
-  for(let p=1;p<=6;p++){
-    const r=await fetch(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&language=pt-BR&page=${p}`
-    );
-    const d=await r.json();
-    pool.push(...d.results.filter(m=>m.release_date&&m.poster_path));
-  }
-  pool.sort(()=>Math.random()-0.5);
-}
-
-function nextMovie(){
-  const m=pool.find(m=>!used.has(m.id));
-  current={...m};
-  used.add(current.id);
-  poster.src=IMG+current.poster_path;
-  title.textContent=current.title;
-}
-
-/* TIMELINE */
-function renderTimeline(){
-  timelineEl.innerHTML="";
-  createDropZone(0);
-  timeline.forEach((item,i)=>{
-    const el=document.createElement("div");
-    el.className="timeline-item";
-    el.innerHTML=`
-      <img src="${IMG+item.poster_path}">
-      <div class="year ${item.wrong?'error':''}">
-        ${item.release_date.slice(0,4)}
-      </div>`;
-    timelineEl.appendChild(el);
-    createDropZone(i+1);
-  });
-}
-
-function createDropZone(index){
-  const dz=document.createElement("div");
-  dz.className="drop-zone";
-  dz.dataset.index=index;
-  timelineEl.appendChild(dz);
-}
-
-function placeMovie(index){
-  const attempt=[...timeline];
-  attempt.splice(index,0,current);
-
-  const sorted=[...attempt].sort(
-    (a,b)=>new Date(a.release_date)-new Date(b.release_date)
-  );
-
-  if(attempt.map(m=>m.id).join()==sorted.map(m=>m.id).join()){
-    timeline=attempt;
-    score++;
-    scoreEl.textContent=score;
-  }else{
-    lives--;
-    renderHearts();
-    const correctIndex=sorted.findIndex(m=>m.id===current.id);
-    current.wrong=true;
-    timeline.splice(correctIndex,0,current);
-    if(lives<=0)return endGame();
-  }
-
-  renderTimeline();
-  nextMovie();
-}
-
-/* DRAG (MOUSE + TOUCH) */
-currentEl.addEventListener("pointerdown",e=>{
-  dragging=true;
-  dragEl=currentEl;
-  dragEl.classList.add("dragging");
-});
-
-window.addEventListener("pointermove",e=>{
-  if(!dragging)return;
-  dragEl.style.left=e.clientX-75+"px";
-  dragEl.style.top=e.clientY-90+"px";
-
-  document.querySelectorAll(".drop-zone").forEach(dz=>{
-    const r=dz.getBoundingClientRect();
-    dz.classList.toggle(
-      "active",
-      e.clientX>r.left && e.clientX<r.right &&
-      e.clientY>r.top && e.clientY<r.bottom
-    );
-  });
-});
-
-window.addEventListener("pointerup",e=>{
-  if(!dragging)return;
-  dragging=false;
-  dragEl.classList.remove("dragging");
-  dragEl.style.left="";
-  dragEl.style.top="";
-
-  document.querySelectorAll(".drop-zone").forEach(dz=>{
-    dz.classList.remove("active");
-    const r=dz.getBoundingClientRect();
-    if(
-      e.clientX>r.left && e.clientX<r.right &&
-      e.clientY>r.top && e.clientY<r.bottom
-    ){
-      placeMovie(+dz.dataset.index);
-    }
-  });
-});
-
-/* FLOW */
-function endGame(){
-  gameOver.style.display="block";
-  const hs=Math.max(
-    score,
-    localStorage.getItem("meiaTriviaHighScore")||0
-  );
-  localStorage.setItem("meiaTriviaHighScore",hs);
-  loadHighScore();
-}
-
-async function restart(){
-  timeline=[];
-  used.clear();
-  score=0;
-  lives=3;
-  scoreEl.textContent=0;
-  gameOver.style.display="none";
-  renderHearts();
-  await loadPool();
-  timeline.push(pool.shift());
-  renderTimeline();
-  nextMovie();
-}
-
-async function start(){
-  loadHighScore();
-  renderHearts();
-  await loadPool();
-  timeline.push(pool.shift());
-  renderTimeline();
-  nextMovie();
-}
-
-start();
-</script>
 </body>
 </html>
-
