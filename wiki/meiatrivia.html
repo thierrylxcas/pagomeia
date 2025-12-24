@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <title>MeiaWiki</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700;800&family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -76,8 +76,8 @@ header{
 }
 
 .year{
-  font-size:12px;
-  opacity:.85;
+  font-size:13px;
+  font-weight:800;
   margin-top:6px;
   visibility:hidden;
 }
@@ -171,25 +171,17 @@ function randomDecade(){
 }
 
 async function fetchDecade(decade){
-  const yearStart = decade;
-  const yearEnd = decade + 9;
-
   const page = Math.floor(Math.random() * 5) + 1;
-
   const res = await fetch(
-    `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${yearStart}-01-01&primary_release_date.lte=${yearEnd}-12-31&sort_by=popularity.desc&page=${page}`
+    `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${decade}-01-01&primary_release_date.lte=${decade+9}-12-31&sort_by=popularity.desc&page=${page}`
   );
-
   const data = await res.json();
-
-  const filtered = data.results.filter(m =>
+  movieQueue.push(...data.results.filter(m =>
     m.poster_path &&
     m.release_date &&
     m.popularity > 20 &&
     !usedIds.has(m.id)
-  );
-
-  movieQueue.push(...filtered);
+  ));
 }
 
 async function getNextMovie(){
@@ -203,7 +195,6 @@ async function getNextMovie(){
 
 async function createCard(movie, reveal){
   const year = movie.release_date.slice(0,4);
-
   const card = document.createElement("div");
   card.className = "movie";
   card.dataset.year = year;
@@ -213,7 +204,6 @@ async function createCard(movie, reveal){
     <img src="${IMG + movie.poster_path}">
     <div class="year ${reveal ? "show" : ""}">${year}</div>
   `;
-
   enableDrag(card);
   return card;
 }
@@ -222,13 +212,11 @@ function enableDrag(card){
   card.addEventListener("dragstart", ()=>{
     dragged = card;
     card.style.opacity = ".4";
-
     placeholder = document.createElement("div");
     placeholder.className = "movie placeholder";
     placeholder.style.width = card.offsetWidth+"px";
     placeholder.style.height = card.offsetHeight+"px";
   });
-
   card.addEventListener("dragend", ()=>{
     card.style.opacity = "1";
     placeholder?.remove();
@@ -244,10 +232,8 @@ timeline.addEventListener("dragover", e=>{
 
 timeline.addEventListener("drop", ()=>{
   if(!dragged) return;
-
   timeline.insertBefore(dragged, placeholder);
   placeholder.remove();
-
   dragged.querySelector(".year").classList.add("show");
   validate();
 });
@@ -264,6 +250,12 @@ function getAfter(container, x){
   },{offset:-Infinity}).el;
 }
 
+function reorderTimeline(){
+  const items = [...timeline.children];
+  items.sort((a,b)=>a.dataset.year - b.dataset.year);
+  items.forEach(i=>timeline.appendChild(i));
+}
+
 function validate(){
   const items = [...timeline.children];
   const years = items.map(i=>+i.dataset.year);
@@ -275,6 +267,7 @@ function validate(){
   }else{
     lives--;
     dragged.querySelector(".year").classList.add("wrong");
+    reorderTimeline();
     updateHUD();
 
     if(lives <= 0){
