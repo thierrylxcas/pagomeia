@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tierlist PagoMeia</title>
 
-<!-- PIXEL FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
@@ -55,20 +54,6 @@ button{
   display:flex;gap:6px;
   flex-wrap:wrap;margin-top:20px
 }
-.img-wrapper{
-  position:relative;width:60px;height:60px
-}
-.img-wrapper img{
-  width:100%;height:100%;object-fit:cover
-}
-.remove-img{
-  position:absolute;top:-6px;right:-6px;
-  width:18px;height:18px;
-  background:#e74c3c;border-radius:50%;
-  font-size:12px;
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer
-}
 .modal{
   display:none;position:fixed;inset:0;
   background:rgba(0,0,0,.85);
@@ -106,15 +91,12 @@ Minha Tier List
 <div class="controls">
   <button id="addTier">Criar bloco</button>
   <button id="templateBtn">Categorias</button>
-  <button id="themeBtn">Temas</button>
-  <button id="exportBtn">Exportar PNG</button>
-  <input type="file" id="upload" multiple accept="image/*">
 </div>
 
 <div id="tiers"></div>
 <div class="pool" id="pool"></div>
 
-<!-- MODAIS -->
+<!-- MODAL CRIAR BLOCO -->
 <div class="modal" id="tierModal">
   <div class="modal-content">
     <strong>Cor do bloco</strong>
@@ -123,16 +105,7 @@ Minha Tier List
   </div>
 </div>
 
-<div class="modal" id="themeModal">
-  <div class="modal-content">
-    <strong>Temas</strong>
-    <div class="option" onclick="setTheme('dark')">🌑 Dark</div>
-    <div class="option" onclick="setTheme('purple')">🟣 Roxo</div>
-    <div class="option" onclick="setTheme('green')">🟢 Verde</div>
-    <div class="option" onclick="setTheme('orange')">🟠 Laranja</div>
-  </div>
-</div>
-
+<!-- MODAL CATEGORIAS -->
 <div class="modal" id="templateModal">
   <div class="modal-content">
     <strong>Categorias</strong>
@@ -145,29 +118,26 @@ Minha Tier List
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
 <script>
-const tiers=document.getElementById('tiers');
-const pool=document.getElementById('pool');
-const colors=['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
+const tiers = document.getElementById('tiers');
+const colors = ['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
+let selectedColor = colors[0];
 
 function initSortable(){
-  document.querySelectorAll('.row,.pool').forEach(el=>{
+  document.querySelectorAll('.row').forEach(el=>{
     Sortable.create(el,{group:'shared',animation:150});
   });
 }
 
-/* === DELEGAÇÃO DE EVENTOS (BUG FIX) === */
+/* DELEGAÇÃO – EXCLUIR */
 document.addEventListener('click',e=>{
   if(e.target.classList.contains('deleteBtn')){
     e.target.closest('.tier').remove();
     saveState();
   }
-  if(e.target.classList.contains('remove-img')){
-    e.target.parentElement.remove();
-    saveState();
-  }
 });
 
-function createTier(text,color){
+/* CRIAR BLOCO */
+function createTier(text='Novo', color=selectedColor){
   const tier=document.createElement('div');
   tier.className='tier';
   tier.innerHTML=`
@@ -177,8 +147,28 @@ function createTier(text,color){
   `;
   tiers.appendChild(tier);
   initSortable();
+  saveState();
 }
 
+/* MODAL CRIAR */
+addTier.onclick=()=>{
+  colorGrid.innerHTML='';
+  colors.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='color';
+    d.style.background=c;
+    d.onclick=()=>selectedColor=c;
+    colorGrid.appendChild(d);
+  });
+  tierModal.style.display='flex';
+};
+
+confirmTier.onclick=()=>{
+  createTier();
+  tierModal.style.display='none';
+};
+
+/* TEMPLATES */
 function loadTemplate(type){
   tiers.innerHTML='';
   const presets={
@@ -188,15 +178,13 @@ function loadTemplate(type){
   }[type];
   presets.forEach((t,i)=>createTier(t,colors[i%colors.length]));
   templateModal.style.display='none';
-  saveState();
 }
 
 /* AUTO SAVE */
 function saveState(){
   localStorage.setItem('tier_state',JSON.stringify({
     title:title.innerText,
-    tiers:tiers.innerHTML,
-    pool:pool.innerHTML
+    tiers:tiers.innerHTML
   }));
 }
 
@@ -209,12 +197,10 @@ function loadState(){
   const d=JSON.parse(s);
   title.innerText=d.title;
   tiers.innerHTML=d.tiers;
-  pool.innerHTML=d.pool;
   initSortable();
 }
 
-document.getElementById('templateBtn').onclick=()=>templateModal.style.display='flex';
-document.getElementById('themeBtn').onclick=()=>themeModal.style.display='flex';
+templateBtn.onclick=()=>templateModal.style.display='flex';
 document.querySelectorAll('.modal').forEach(m=>{
   m.onclick=e=>e.target===m&&(m.style.display='none');
 });
