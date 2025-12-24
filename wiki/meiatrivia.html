@@ -182,13 +182,139 @@ body{
 const API_KEY="69f20920b621de40289df7481ea14b29";
 const IMG="https://image.tmdb.org/t/p/w300";
 
-let timeline=[], pool=[], used=new Set();
-let current=null, score=0, lives=3;
-let dragging=false, dragEl=null;
+const pool = [
+  {id:770, year:1939},
+  {id:539, year:1960},
+  {id:238, year:1972},
+  {id:11, year:1977},
+  {id:329, year:1993},
+  {id:603, year:1999},
+  {id:120, year:2001},
+  {id:19995, year:2009},
+  {id:299534, year:2019},
+  {id:872585, year:2023}
+];
 
-const timelineEl=document.getElementById("timeline");
-const currentEl=document.getElementById("current");
-const scoreEl=document.getElementById("score");
+let round = pool.slice(0,4);
+let errors = 0;
+let dragged = null;
+let placeholder;
+
+const record = localStorage.getItem("movieTriviaCinema");
+document.getElementById("record").innerText = record ?? "—";
+
+async function load(){
+  const moviesDiv = document.getElementById("movies");
+  const timeline = document.getElementById("timeline");
+  moviesDiv.innerHTML = "";
+  timeline.innerHTML = "";
+
+  round = round.sort(()=>Math.random()-0.5);
+
+  for(const m of round){
+    const res = await fetch(
+      `https://api.themoviedb.org/3/movie/${m.id}?api_key=${API_KEY}&language=pt-BR`
+    );
+    const data = await res.json();
+
+    const card = document.createElement("div");
+    card.className = "movie";
+    card.draggable = true;
+    card.dataset.year = m.year;
+    card.innerHTML = `
+      <img src="${IMG + data.poster_path}">
+      <p>${data.title}</p>
+    `;
+
+    addDragEvents(card);
+    moviesDiv.appendChild(card);
+  }
+}
+
+function addDragEvents(card){
+  card.addEventListener("dragstart", () => {
+    dragged = card;
+    card.style.opacity = ".4";
+
+    placeholder = document.createElement("div");
+    placeholder.className = "movie";
+    placeholder.style.opacity = ".25";
+    placeholder.style.border = "2px dashed #7f3dff";
+    placeholder.style.borderRadius = "14px";
+    placeholder.style.height = card.offsetHeight + "px";
+    placeholder.style.width = card.offsetWidth + "px";
+  });
+
+  card.addEventListener("dragend", () => {
+    card.style.opacity = "1";
+    placeholder?.remove();
+    dragged = null;
+  });
+}
+
+// TIMELINE INTELIGENTE
+const timeline = document.getElementById("timeline");
+
+timeline.addEventListener("dragover", e => {
+  e.preventDefault();
+  const after = getAfterElement(timeline, e.clientX);
+  if(after == null){
+    timeline.appendChild(placeholder);
+  }else{
+    timeline.insertBefore(placeholder, after);
+  }
+});
+
+timeline.addEventListener("drop", e => {
+  e.preventDefault();
+  if(placeholder && dragged){
+    timeline.insertBefore(dragged, placeholder);
+    placeholder.remove();
+  }
+});
+
+function getAfterElement(container, x){
+  const items = [...container.querySelectorAll(".movie:not(.dragging)")];
+
+  return items.reduce((closest, child) => {
+    const box = child.getBoundingClientRect();
+    const offset = x - box.left - box.width / 2;
+    if(offset < 0 && offset > closest.offset){
+      return {offset, element: child};
+    }
+    return closest;
+  }, {offset: Number.NEGATIVE_INFINITY}).element;
+}
+
+function checkOrder(){
+  const items = [...timeline.querySelectorAll(".movie")];
+  if(items.length !== round.length){
+    alert("Arraste todos os filmes para a linha do tempo!");
+    return;
+  }
+
+  const years = items.map(i => Number(i.dataset.year));
+  const sorted = [...years].sort((a,b)=>a-b);
+
+  if(JSON.stringify(years) === JSON.stringify(sorted)){
+    alert("🎉 Ordem correta!");
+    if(!record || errors < record){
+      localStorage.setItem("movieTriviaCinema", errors);
+    }
+  }else{
+    errors++;
+    document.getElementById("errors").innerText = errors;
+    alert("❌ Ordem errada! Um novo filme entrou.");
+
+    if(pool.length > round.length){
+      round.push(pool[round.length]);
+    }
+    load();
+  }
+}
+
+load();
+</script>
 
 /* UI */
 function renderHearts(){
@@ -355,3 +481,4 @@ start();
 </script>
 </body>
 </html>
+
