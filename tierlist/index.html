@@ -236,24 +236,19 @@ function loadState(){
 
 templateBtn.onclick=()=>templateModal.style.display='flex';
 themeBtn.onclick=()=>themeModal.style.display='flex';
+
+/* ===== FIX: remover undefined ===== */
 document.querySelectorAll('.modal').forEach(m=>{
-m.onclick = e => {
-  if (e.target === m) m.style.display = 'none';
-};
+  m.onclick = e => {
+    if(e.target === m){
+      m.style.display = 'none';
+    }
+  };
+});
 
 title.addEventListener('input',saveState);
 window.addEventListener('load',loadState);
-
-// remove texto "undefined" perdido no DOM
-document.body.childNodes.forEach(n=>{
-  if(n.nodeType === 3 && n.textContent.trim() === 'undefined'){
-    n.remove();
-  }
-});
 </script>
 
 </body>
 </html>
-
-
-
