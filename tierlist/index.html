@@ -249,6 +249,16 @@ document.querySelectorAll('.modal').forEach(function(m){
 
 title.addEventListener('input', saveState);
 window.addEventListener('load', loadState);
+
+/* ===== EXPORTAR PNG ===== */
+document.getElementById('exportBtn').onclick = function(){
+  html2canvas(document.body, { scale: 2, backgroundColor: null }).then(canvas => {
+    const a = document.createElement('a');
+    a.download = 'tierlist.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+  });
+};
 </script>
 
 </body>
