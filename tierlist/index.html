@@ -5,15 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tierlist PagoMeia</title>
 
+<!-- PIXEL FONT -->
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 :root{
-  --bg:#1a1325;
-  --row:#2a1f3d;
-  --pool:#140e1f;
-  --btn:#9b59b6;
-  --text:#fff
+  --bg:#121212;--row:#1e1e1e;--pool:#0e0e0e;--btn:#2ecc71;--text:#fff
 }
 body{
   background:var(--bg);color:var(--text);
@@ -23,13 +20,13 @@ body{
   text-align:center;
   font-size:22px;
   font-family:'Press Start 2P', monospace;
-  margin-bottom:18px
+  margin-bottom:12px
 }
 .controls{text-align:center;margin-bottom:15px}
 button{
   background:var(--btn);border:none;
   padding:10px 14px;margin:4px;
-  font-weight:bold;cursor:pointer;color:#fff
+  font-weight:bold;cursor:pointer
 }
 .tier{display:flex;margin-bottom:6px}
 .label{
@@ -44,15 +41,25 @@ button{
   display:flex;gap:6px;
   padding:6px;min-height:90px
 }
-.deleteBtn{
-  background:#e74c3c;
-  margin-left:6px;
-  cursor:pointer
-}
+.deleteBtn{background:#e74c3c;margin-left:6px}
 .pool{
   background:var(--pool);padding:10px;
   display:flex;gap:6px;
   flex-wrap:wrap;margin-top:20px
+}
+.img-wrapper{
+  position:relative;width:60px;height:60px
+}
+.img-wrapper img{
+  width:100%;height:100%;object-fit:cover
+}
+.remove-img{
+  position:absolute;top:-6px;right:-6px;
+  width:18px;height:18px;
+  background:#e74c3c;border-radius:50%;
+  font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer
 }
 .modal{
   display:none;position:fixed;inset:0;
@@ -91,12 +98,15 @@ Minha Tier List
 <div class="controls">
   <button id="addTier">Criar bloco</button>
   <button id="templateBtn">Categorias</button>
+  <button id="themeBtn">Temas</button>
+  <button id="exportBtn">Exportar PNG</button>
+  <input type="file" id="upload" multiple accept="image/*">
 </div>
 
 <div id="tiers"></div>
 <div class="pool" id="pool"></div>
 
-<!-- MODAL CRIAR BLOCO -->
+<!-- MODAIS -->
 <div class="modal" id="tierModal">
   <div class="modal-content">
     <strong>Cor do bloco</strong>
@@ -105,7 +115,16 @@ Minha Tier List
   </div>
 </div>
 
-<!-- MODAL CATEGORIAS -->
+<div class="modal" id="themeModal">
+  <div class="modal-content">
+    <strong>Temas</strong>
+    <div class="option" onclick="setTheme('dark')">🌑 Dark</div>
+    <div class="option" onclick="setTheme('purple')">🟣 Roxo</div>
+    <div class="option" onclick="setTheme('green')">🟢 Verde</div>
+    <div class="option" onclick="setTheme('orange')">🟠 Laranja</div>
+  </div>
+</div>
+
 <div class="modal" id="templateModal">
   <div class="modal-content">
     <strong>Categorias</strong>
@@ -116,28 +135,29 @@ Minha Tier List
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-const tiers = document.getElementById('tiers');
-const colors = ['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
-let selectedColor = colors[0];
+const tiers=document.getElementById('tiers');
+const pool=document.getElementById('pool');
+const colors=['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
+let selectedColor=colors[0];
 
 function initSortable(){
-  document.querySelectorAll('.row').forEach(el=>{
+  document.querySelectorAll('.row,.pool').forEach(el=>{
     Sortable.create(el,{group:'shared',animation:150});
   });
 }
 
-/* DELEGAÇÃO – EXCLUIR */
-document.addEventListener('click',e=>{
-  if(e.target.classList.contains('deleteBtn')){
-    e.target.closest('.tier').remove();
-    saveState();
-  }
-});
+function createImg(src){
+  const w=document.createElement('div');
+  w.className='img-wrapper';
+  w.innerHTML=`<img src="${src}"><div class="remove-img">×</div>`;
+  return w;
+}
 
-/* CRIAR BLOCO */
-function createTier(text='Novo', color=selectedColor){
+/* ===== FIX: criar bloco ===== */
+function createTier(text='Novo',color=selectedColor){
   const tier=document.createElement('div');
   tier.className='tier';
   tier.innerHTML=`
@@ -168,6 +188,18 @@ confirmTier.onclick=()=>{
   tierModal.style.display='none';
 };
 
+/* DELEGAÇÃO – EXCLUIR */
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('deleteBtn')){
+    e.target.closest('.tier').remove();
+    saveState();
+  }
+  if(e.target.classList.contains('remove-img')){
+    e.target.parentElement.remove();
+    saveState();
+  }
+});
+
 /* TEMPLATES */
 function loadTemplate(type){
   tiers.innerHTML='';
@@ -180,27 +212,30 @@ function loadTemplate(type){
   templateModal.style.display='none';
 }
 
-/* AUTO SAVE */
+/* AUTO SAVE (ÚNICO) */
 function saveState(){
   localStorage.setItem('tier_state',JSON.stringify({
     title:title.innerText,
-    tiers:tiers.innerHTML
+    tiers:tiers.innerHTML,
+    pool:pool.innerHTML
   }));
 }
 
 function loadState(){
-  const s=localStorage.getItem('tier_state');
-  if(!s){
-    loadTemplate('series');
+  const data=localStorage.getItem('tier_state');
+  if(!data){
+    loadTemplate('series'); // padrão inicial
     return;
   }
-  const d=JSON.parse(s);
-  title.innerText=d.title;
-  tiers.innerHTML=d.tiers;
+  const s=JSON.parse(data);
+  title.innerText=s.title;
+  tiers.innerHTML=s.tiers;
+  pool.innerHTML=s.pool;
   initSortable();
 }
 
 templateBtn.onclick=()=>templateModal.style.display='flex';
+themeBtn.onclick=()=>themeModal.style.display='flex';
 document.querySelectorAll('.modal').forEach(m=>{
   m.onclick=e=>e.target===m&&(m.style.display='none');
 });
