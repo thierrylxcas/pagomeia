@@ -75,14 +75,10 @@ header{
   pointer-events:none;
 }
 
-.movie p{
-  font-size:13px;
-  margin:6px 0 0;
-}
-
 .year{
   font-size:12px;
-  opacity:.75;
+  opacity:.8;
+  margin-top:6px;
   visibility:hidden;
 }
 
@@ -157,54 +153,53 @@ let difficulty = 0;
 let dragged = null;
 let placeholder = null;
 
-const basePool = [
-  {id:770, year:1939},
-  {id:539, year:1960},
-  {id:238, year:1972},
-  {id:11, year:1977},
-  {id:329, year:1993},
-  {id:603, year:1999},
-  {id:120, year:2001},
-  {id:19995, year:2009},
-  {id:299534, year:2019},
-  {id:872585, year:2023},
-  {id:424, year:1994},     // Pulp Fiction
-  {id:680, year:1994},     // Forrest Gump
-  {id:155, year:2008},     // Batman Dark Knight
-  {id:27205, year:2010},   // Inception
-  {id:13, year:1994}       // Forrest
-];
-
-let pool = shuffle([...basePool]);
-let index = 0;
+let movieQueue = [];
+let page = 1;
 
 const timeline = document.getElementById("timeline");
 const current = document.getElementById("current");
-
-function shuffle(arr){
-  return arr.sort(()=>Math.random()-0.5);
-}
 
 function updateHUD(){
   document.getElementById("hearts").innerText = "❤️".repeat(lives);
   document.getElementById("score").innerText = score;
 }
 
-async function createCard(movie, reveal){
+async function fetchMovies(){
+  const type = Math.random() > 0.5 ? "popular" : "top_rated";
   const res = await fetch(
-    `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${API_KEY}&language=pt-BR`
+    `https://api.themoviedb.org/3/movie/${type}?api_key=${API_KEY}&page=${page}&language=pt-BR`
   );
   const data = await res.json();
+  page++;
+
+  const filtered = data.results.filter(m =>
+    m.poster_path &&
+    m.release_date &&
+    parseInt(m.release_date) > 1930 &&
+    m.popularity > 20
+  );
+
+  movieQueue.push(...filtered);
+}
+
+async function getNextMovie(){
+  if(movieQueue.length < 5){
+    await fetchMovies();
+  }
+  return movieQueue.shift();
+}
+
+async function createCard(movie, reveal){
+  const year = movie.release_date.slice(0,4);
 
   const card = document.createElement("div");
   card.className = "movie";
-  card.dataset.year = movie.year;
+  card.dataset.year = year;
   card.draggable = true;
 
   card.innerHTML = `
-    <img src="${IMG + data.poster_path}">
-    <p>${data.title}</p>
-    <div class="year ${reveal ? "show" : ""}">${movie.year}</div>
+    <img src="${IMG + movie.poster_path}">
+    <div class="year ${reveal ? "show" : ""}">${year}</div>
   `;
 
   enableDrag(card);
@@ -282,20 +277,18 @@ function validate(){
 }
 
 async function nextMovie(){
-  if(index >= pool.length){
-    pool = shuffle([...basePool]);
-    index = 0;
-  }
-
   current.innerHTML = "";
-  const card = await createCard(pool[index++], false);
+  const movie = await getNextMovie();
+  const card = await createCard(movie, false);
   current.appendChild(card);
   updateHUD();
 }
 
 (async()=>{
-  const first = await createCard(pool[index++], true);
-  timeline.appendChild(first);
+  await fetchMovies();
+  const first = await getNextMovie();
+  const firstCard = await createCard(first, true);
+  timeline.appendChild(firstCard);
   nextMovie();
 })();
 </script>
