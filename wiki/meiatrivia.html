@@ -47,9 +47,7 @@ header{
   text-align:center;
 }
 
-.current{
-  margin-bottom:25px;
-}
+.current{margin-bottom:25px}
 
 .movie{
   width:150px;
@@ -71,10 +69,17 @@ header{
 
 .year{
   font-size:12px;
-  opacity:.7;
+  opacity:.75;
 }
 
-.year.wrong{color:var(--red)}
+.year.hidden{
+  visibility:hidden;
+}
+
+.year.wrong{
+  color:var(--red);
+  visibility:visible;
+}
 
 .timeline{
   position:relative;
@@ -121,7 +126,6 @@ header{
 </header>
 
 <div class="board">
-
   <p>Arraste o filme para a posição correta na linha do tempo.</p>
 
   <div class="current" id="current"></div>
@@ -129,7 +133,6 @@ header{
   <div class="timeline">
     <div class="timeline-zone" id="timeline"></div>
   </div>
-
 </div>
 
 </div>
@@ -144,17 +147,18 @@ let index = 0;
 let dragged = null;
 let placeholder = null;
 
+// Pool POPULAR + CULTURAL (ordem embaralhada)
 const pool = [
-  {id:770, year:1939},
-  {id:539, year:1960},
-  {id:238, year:1972},
-  {id:11, year:1977},
-  {id:329, year:1993},
-  {id:603, year:1999},
-  {id:120, year:2001},
-  {id:19995, year:2009},
-  {id:299534, year:2019},
-  {id:872585, year:2023}
+  {id:238, year:1972},     // O Poderoso Chefão
+  {id:11, year:1977},      // Star Wars
+  {id:539, year:1960},     // Psicose
+  {id:770, year:1939},     // E o Vento Levou
+  {id:603, year:1999},     // Matrix
+  {id:329, year:1993},     // Jurassic Park
+  {id:120, year:2001},     // Senhor dos Anéis
+  {id:19995, year:2009},   // Avatar
+  {id:299534, year:2019},  // Vingadores Ultimato
+  {id:872585, year:2023}   // Oppenheimer
 ].sort(()=>Math.random()-0.5);
 
 const timeline = document.getElementById("timeline");
@@ -165,7 +169,7 @@ function updateHUD(){
   document.getElementById("score").innerText = score;
 }
 
-async function createCard(movie){
+async function createCard(movie, revealYear){
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${API_KEY}&language=pt-BR`
   );
@@ -175,10 +179,11 @@ async function createCard(movie){
   card.className = "movie";
   card.dataset.year = movie.year;
   card.draggable = true;
+
   card.innerHTML = `
     <img src="${IMG + data.poster_path}">
     <p>${data.title}</p>
-    <div class="year">${movie.year}</div>
+    <div class="year ${revealYear ? "" : "hidden"}">${movie.year}</div>
   `;
 
   enableDrag(card);
@@ -213,6 +218,8 @@ timeline.addEventListener("drop", ()=>{
   if(!dragged) return;
   timeline.insertBefore(dragged, placeholder);
   placeholder.remove();
+
+  dragged.querySelector(".year").classList.remove("hidden");
   validate();
 });
 
@@ -258,13 +265,13 @@ async function nextMovie(){
     return;
   }
   current.innerHTML = "";
-  const card = await createCard(pool[index]);
+  const card = await createCard(pool[index], false);
   current.appendChild(card);
   updateHUD();
 }
 
 (async()=>{
-  const first = await createCard(pool[index++]);
+  const first = await createCard(pool[index++], true);
   timeline.appendChild(first);
   nextMovie();
 })();
