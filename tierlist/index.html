@@ -143,12 +143,14 @@ const pool = document.getElementById('pool');
 const colors = ['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
 let selectedColor = colors[0];
 
+/* ===== SORTABLE ===== */
 function initSortable(){
   document.querySelectorAll('.row,.pool').forEach(el=>{
     Sortable.create(el,{group:'shared',animation:150});
   });
 }
 
+/* ===== CRIAR IMAGEM ===== */
 function createImg(src){
   if(!src) return null;
   const w = document.createElement('div');
@@ -157,6 +159,7 @@ function createImg(src){
   return w;
 }
 
+/* ===== CRIAR BLOCO ===== */
 function createTier(text='Novo', color=selectedColor){
   text = text || 'Novo';
   color = color || colors[0];
@@ -172,7 +175,7 @@ function createTier(text='Novo', color=selectedColor){
   saveState();
 }
 
-/* MODAL CRIAR */
+/* ===== MODAL CRIAR ===== */
 addTier.onclick = function(){
   colorGrid.innerHTML = '';
   colors.forEach(function(c){
@@ -190,7 +193,7 @@ confirmTier.onclick = function(){
   tierModal.style.display = 'none';
 };
 
-/* DELEGAÇÃO – EXCLUIR */
+/* ===== DELETAR BLOCO OU IMAGEM ===== */
 document.addEventListener('click', function(e){
   if(e.target.classList.contains('deleteBtn')){
     e.target.closest('.tier').remove();
@@ -202,7 +205,7 @@ document.addEventListener('click', function(e){
   }
 });
 
-/* TEMPLATES */
+/* ===== TEMPLATES ===== */
 function loadTemplate(type){
   tiers.innerHTML = '';
   const presets = {
@@ -216,7 +219,23 @@ function loadTemplate(type){
   templateModal.style.display = 'none';
 }
 
-/* AUTO SAVE */
+/* ===== TEMAS ===== */
+function setTheme(t){
+  const themes = {
+    dark: ['#121212','#1e1e1e','#0e0e0e','#2ecc71'],
+    purple: ['#1a1325','#2a1f3d','#140e1f','#9b59b6'],
+    green: ['#10231a','#1e3d2b','#0b1812','#2ecc71'],
+    orange: ['#2b1607','#402008','#1d0e04','#e67e22']
+  }[t];
+
+  if(!themes) return;
+  ['--bg','--row','--pool','--btn'].forEach((v,i)=>{
+    document.documentElement.style.setProperty(v, themes[i]);
+  });
+  saveState();
+}
+
+/* ===== AUTO SAVE ===== */
 function saveState(){
   localStorage.setItem('tier_state', JSON.stringify({
     title: title.innerText || 'Minha Tier List',
@@ -228,7 +247,7 @@ function saveState(){
 function loadState(){
   const data = localStorage.getItem('tier_state');
   if(!data){
-    loadTemplate('series'); // padrão inicial
+    loadTemplate('series');
     return;
   }
   const s = JSON.parse(data);
@@ -238,6 +257,7 @@ function loadState(){
   initSortable();
 }
 
+/* ===== EVENTOS ===== */
 templateBtn.onclick = function(){ templateModal.style.display = 'flex'; };
 themeBtn.onclick = function(){ themeModal.style.display = 'flex'; };
 
