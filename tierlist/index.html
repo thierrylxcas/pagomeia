@@ -7,7 +7,11 @@
 
 <style>
 :root{
-  --bg:#121212;--row:#1e1e1e;--pool:#0e0e0e;--btn:#2ecc71;--text:#fff
+  --bg:#1a1325;
+  --row:#2a1f3d;
+  --pool:#140e1f;
+  --btn:#9b59b6;
+  --text:#fff
 }
 body{
   background:var(--bg);color:var(--text);
@@ -20,7 +24,7 @@ body{
 button{
   background:var(--btn);border:none;
   padding:10px 14px;margin:4px;
-  font-weight:bold;cursor:pointer
+  font-weight:bold;cursor:pointer;color:#fff
 }
 .tier{display:flex;margin-bottom:6px}
 .label{
@@ -100,7 +104,7 @@ Minha Tier List
 <div id="tiers"></div>
 <div class="pool" id="pool"></div>
 
-<!-- MODAL BLOCO -->
+<!-- MODAIS -->
 <div class="modal" id="tierModal">
   <div class="modal-content">
     <strong>Cor do bloco</strong>
@@ -109,7 +113,6 @@ Minha Tier List
   </div>
 </div>
 
-<!-- MODAL TEMAS -->
 <div class="modal" id="themeModal">
   <div class="modal-content">
     <strong>Temas</strong>
@@ -120,7 +123,6 @@ Minha Tier List
   </div>
 </div>
 
-<!-- MODAL CATEGORIAS -->
 <div class="modal" id="templateModal">
   <div class="modal-content">
     <strong>Categorias</strong>
@@ -148,16 +150,12 @@ function initSortable(){
 function createImg(src){
   const w=document.createElement('div');
   w.className='img-wrapper';
-  w.innerHTML=`<img src="${src}">
-  <div class="remove-img">×</div>`;
-  w.querySelector('.remove-img').onclick=()=>{
-    w.remove();
-    saveState();
-  };
+  w.innerHTML=`<img src="${src}"><div class="remove-img">×</div>`;
+  w.querySelector('.remove-img').onclick=()=>{w.remove();saveState()};
   return w;
 }
 
-function createTier(text='Novo',color=selectedColor){
+function createTier(text,color){
   const tier=document.createElement('div');
   tier.className='tier';
   tier.innerHTML=`
@@ -165,70 +163,9 @@ function createTier(text='Novo',color=selectedColor){
     <div class="row"></div>
     <button class="deleteBtn">X</button>
   `;
-  tier.querySelector('.deleteBtn').onclick=()=>{
-    tier.remove();
-    saveState();
-  };
+  tier.querySelector('.deleteBtn').onclick=()=>{tier.remove();saveState()};
   tiers.appendChild(tier);
   initSortable();
-  saveState();
-}
-
-document.getElementById('addTier').onclick=()=>{
-  const g=document.getElementById('colorGrid');
-  g.innerHTML='';
-  colors.forEach(c=>{
-    const d=document.createElement('div');
-    d.className='color';d.style.background=c;
-    d.onclick=()=>selectedColor=c;
-    g.appendChild(d);
-  });
-  tierModal.style.display='flex';
-};
-
-document.getElementById('confirmTier').onclick=()=>{
-  createTier();
-  tierModal.style.display='none';
-};
-
-document.getElementById('upload').onchange=function(){
-  [...this.files].forEach(f=>{
-    const r=new FileReader();
-    r.onload=e=>{
-      pool.appendChild(createImg(e.target.result));
-      initSortable();
-      saveState();
-    };
-    r.readAsDataURL(f);
-  });
-  this.value='';
-};
-
-document.getElementById('exportBtn').onclick=()=>{
-  html2canvas(document.body,{scale:2}).then(c=>{
-    const a=document.createElement('a');
-    a.download='tierlist.png';
-    a.href=c.toDataURL();
-    a.click();
-  });
-};
-
-document.getElementById('themeBtn').onclick=()=>themeModal.style.display='flex';
-document.getElementById('templateBtn').onclick=()=>templateModal.style.display='flex';
-document.querySelectorAll('.modal').forEach(m=>{
-  m.onclick=e=>e.target===m&&(m.style.display='none');
-});
-
-function setTheme(t){
-  const themes={
-    dark:['#121212','#1e1e1e','#0e0e0e','#2ecc71'],
-    purple:['#1a1325','#2a1f3d','#140e1f','#9b59b6'],
-    green:['#10231a','#1e3d2b','#0b1812','#2ecc71'],
-    orange:['#2b1607','#402008','#1d0e04','#e67e22']
-  }[t];
-  ['--bg','--row','--pool','--btn']
-    .forEach((v,i)=>document.documentElement.style.setProperty(v,themes[i]));
-  saveState();
 }
 
 function loadTemplate(type){
@@ -243,98 +180,49 @@ function loadTemplate(type){
   saveState();
 }
 
-/* ======================
-   AUTO-SAVE EM JSON
-====================== */
+function setTheme(t){
+  const themes={
+    dark:['#121212','#1e1e1e','#0e0e0e','#2ecc71'],
+    purple:['#1a1325','#2a1f3d','#140e1f','#9b59b6'],
+    green:['#10231a','#1e3d2b','#0b1812','#2ecc71'],
+    orange:['#2b1607','#402008','#1d0e04','#e67e22']
+  }[t];
+  ['--bg','--row','--pool','--btn']
+    .forEach((v,i)=>document.documentElement.style.setProperty(v,themes[i]));
+  saveState();
+}
 
-function getState(){
-  return{
+/* AUTO SAVE */
+function saveState(){
+  localStorage.setItem('tier_state',JSON.stringify({
     title:title.innerText,
-    tiers:[...tiers.children].map(t=>({
-      label:t.querySelector('.label').innerText,
-      color:t.querySelector('.label').style.background,
-      images:[...t.querySelectorAll('img')].map(i=>i.src)
-    })),
-    pool:[...pool.querySelectorAll('img')].map(i=>i.src),
-    theme:getComputedStyle(document.documentElement).getPropertyValue('--bg')
-  };
-}
-
-function saveState(){
-  localStorage.setItem('tier_state',JSON.stringify(getState()));
+    tiers:tiers.innerHTML,
+    pool:pool.innerHTML
+  }));
 }
 
 function loadState(){
-  const data=localStorage.getItem('tier_state');
-  if(!data) return;
-  const s=JSON.parse(data);
-
-  title.innerText=s.title;
-  tiers.innerHTML='';
-  pool.innerHTML='';
-
-  s.tiers.forEach(t=>{
-    createTier(t.label,t.color);
-    const row=tiers.lastElementChild.querySelector('.row');
-    t.images.forEach(src=>row.appendChild(createImg(src)));
-  });
-
-  s.pool.forEach(src=>pool.appendChild(createImg(src)));
-  initSortable();
-}
-
-document.getElementById('title').addEventListener('input',saveState);
-new MutationObserver(saveState)
-  .observe(document.body,{childList:true,subtree:true});
-
-createTier('S','#ff4d4d');
-createTier('A','#ff9f1a');
-loadState();
-initSortable();
-
-/* ===== AUTO SAVE PASSIVO ===== */
-
-function saveState(){
-  const state = {
-    title: title.innerText,
-    html: {
-      tiers: tiers.innerHTML,
-      pool: pool.innerHTML
-    }
-  };
-  localStorage.setItem('tier_state', JSON.stringify(state));
-}
-
-function loadState(){
-  const data = localStorage.getItem('tier_state');
-  if(!data) return;
-
-  const state = JSON.parse(data);
-  title.innerText = state.title;
-  tiers.innerHTML = state.html.tiers;
-  pool.innerHTML = state.html.pool;
-
-  initSortable();
-}
-
-/* hooks */
-title.addEventListener('input', saveState);
-
-document.addEventListener('click', e=>{
-  if(
-    e.target.matches('button') ||
-    e.target.matches('.remove-img')
-  ){
-    setTimeout(saveState, 50);
+  const s=localStorage.getItem('tier_state');
+  if(!s){
+    loadTemplate('series'); // 👈 PADRÃO SÉRIES
+    setTheme('purple');     // 👈 PADRÃO VISUAL
+    return;
   }
+  const d=JSON.parse(s);
+  title.innerText=d.title;
+  tiers.innerHTML=d.tiers;
+  pool.innerHTML=d.pool;
+  initSortable();
+}
+
+document.getElementById('templateBtn').onclick=()=>templateModal.style.display='flex';
+document.getElementById('themeBtn').onclick=()=>themeModal.style.display='flex';
+document.querySelectorAll('.modal').forEach(m=>{
+  m.onclick=e=>e.target===m&&(m.style.display='none');
 });
 
-document.getElementById('upload')
-  .addEventListener('change', ()=>setTimeout(saveState, 100));
-
-window.addEventListener('load', loadState);
+window.addEventListener('load',loadState);
 </script>
 
 </body>
 </html>
-
