@@ -138,10 +138,10 @@ Minha Tier List
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-const tiers=document.getElementById('tiers');
-const pool=document.getElementById('pool');
-const colors=['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
-let selectedColor=colors[0];
+const tiers = document.getElementById('tiers');
+const pool = document.getElementById('pool');
+const colors = ['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
+let selectedColor = colors[0];
 
 function initSortable(){
   document.querySelectorAll('.row,.pool').forEach(el=>{
@@ -150,17 +150,19 @@ function initSortable(){
 }
 
 function createImg(src){
-  const w=document.createElement('div');
-  w.className='img-wrapper';
-  w.innerHTML=`<img src="${src}"><div class="remove-img">×</div>`;
+  if(!src) return null;
+  const w = document.createElement('div');
+  w.className = 'img-wrapper';
+  w.innerHTML = `<img src="${src}"><div class="remove-img">×</div>`;
   return w;
 }
 
-/* ===== FIX: criar bloco ===== */
-function createTier(text='Novo',color=selectedColor){
-  const tier=document.createElement('div');
-  tier.className='tier';
-  tier.innerHTML=`
+function createTier(text='Novo', color=selectedColor){
+  text = text || 'Novo';
+  color = color || colors[0];
+  const tier = document.createElement('div');
+  tier.className = 'tier';
+  tier.innerHTML = `
     <div class="label" contenteditable style="background:${color}">${text}</div>
     <div class="row"></div>
     <button class="deleteBtn">X</button>
@@ -172,24 +174,24 @@ function createTier(text='Novo',color=selectedColor){
 
 /* MODAL CRIAR */
 addTier.onclick = function(){
-  colorGrid.innerHTML='';
+  colorGrid.innerHTML = '';
   colors.forEach(function(c){
-    const d=document.createElement('div');
-    d.className='color';
-    d.style.background=c;
+    const d = document.createElement('div');
+    d.className = 'color';
+    d.style.background = c;
     d.onclick = function(){ selectedColor = c; };
     colorGrid.appendChild(d);
   });
-  tierModal.style.display='flex';
+  tierModal.style.display = 'flex';
 };
 
-confirmTier.onclick=()=>{
+confirmTier.onclick = function(){
   createTier();
-  tierModal.style.display='none';
+  tierModal.style.display = 'none';
 };
 
 /* DELEGAÇÃO – EXCLUIR */
-document.addEventListener('click',e=>{
+document.addEventListener('click', function(e){
   if(e.target.classList.contains('deleteBtn')){
     e.target.closest('.tier').remove();
     saveState();
@@ -202,52 +204,51 @@ document.addEventListener('click',e=>{
 
 /* TEMPLATES */
 function loadTemplate(type){
-  tiers.innerHTML='';
-  const presets={
+  tiers.innerHTML = '';
+  const presets = {
     games:['S','A','B','C','D'],
     movies:['Masterpiece','Great','Good','Ok','Bad'],
     series:['Excelente','Bom','Médio','Ruim']
   }[type];
-  presets.forEach((t,i)=>createTier(t,colors[i%colors.length]));
-  templateModal.style.display='none';
+  presets.forEach(function(t,i){
+    createTier(t, colors[i % colors.length]);
+  });
+  templateModal.style.display = 'none';
 }
 
-/* AUTO SAVE (ÚNICO) */
+/* AUTO SAVE */
 function saveState(){
-  localStorage.setItem('tier_state',JSON.stringify({
-    title:title.innerText,
-    tiers:tiers.innerHTML,
-    pool:pool.innerHTML
+  localStorage.setItem('tier_state', JSON.stringify({
+    title: title.innerText || 'Minha Tier List',
+    tiers: tiers.innerHTML || '',
+    pool: pool.innerHTML || ''
   }));
 }
 
 function loadState(){
-  const data=localStorage.getItem('tier_state');
+  const data = localStorage.getItem('tier_state');
   if(!data){
     loadTemplate('series'); // padrão inicial
     return;
   }
-  const s=JSON.parse(data);
-  title.innerText=s.title;
-  tiers.innerHTML=s.tiers;
-  pool.innerHTML=s.pool;
+  const s = JSON.parse(data);
+  title.innerText = s.title || 'Minha Tier List';
+  tiers.innerHTML = s.tiers || '';
+  pool.innerHTML = s.pool || '';
   initSortable();
 }
 
-templateBtn.onclick=()=>templateModal.style.display='flex';
-themeBtn.onclick=()=>themeModal.style.display='flex';
+templateBtn.onclick = function(){ templateModal.style.display = 'flex'; };
+themeBtn.onclick = function(){ themeModal.style.display = 'flex'; };
 
-/* ===== FIX: remover undefined ===== */
-document.querySelectorAll('.modal').forEach(m=>{
+document.querySelectorAll('.modal').forEach(function(m){
   m.onclick = function(e){
-    if(e.target === m){
-      m.style.display = 'none';
-    }
+    if(e.target === m) m.style.display = 'none';
   };
 });
 
-title.addEventListener('input',saveState);
-window.addEventListener('load',loadState);
+title.addEventListener('input', saveState);
+window.addEventListener('load', loadState);
 </script>
 
 </body>
