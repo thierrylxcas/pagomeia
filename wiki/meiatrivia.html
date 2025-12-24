@@ -27,10 +27,7 @@ body{
   padding:30px 20px;
 }
 
-.game{
-  max-width:900px;
-  width:100%;
-}
+.game{max-width:900px;width:100%}
 
 header{
   display:flex;
@@ -64,7 +61,6 @@ header{
   width:140px;
   text-align:center;
   cursor:grab;
-  animation:fade .25s ease;
 }
 
 .movie img{
@@ -104,9 +100,13 @@ header{
   display:flex;
   justify-content:center;
   gap:18px;
-  position:relative;
-  z-index:2;
   min-height:190px;
+}
+
+.placeholder{
+  opacity:.25;
+  border:2px dashed var(--purple);
+  border-radius:14px;
 }
 
 button{
@@ -118,23 +118,8 @@ button{
   color:#fff;
   font-weight:700;
   cursor:pointer;
-  transition:.25s;
 }
 
-button:hover{
-  transform:scale(1.05);
-}
-
-.placeholder{
-  opacity:.25;
-  border:2px dashed var(--purple);
-  border-radius:14px;
-}
-
-@keyframes fade{
-  from{opacity:0;transform:translateY(10px)}
-  to{opacity:1}
-}
 </style>
 </head>
 <body>
@@ -164,29 +149,25 @@ button:hover{
 </div>
 
 <script>
-// =============================
-// TMDB
-// =============================
+// ================= TMDB =================
 const API_KEY = "69f20920b621de40289df7481ea14b29";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
-// =============================
-// FILMES (história do cinema)
-// =============================
+// ======= POOL FIXO (ordem real escondida) =======
 const pool = [
-  {id:770, year:1939},     // E o Vento Levou
-  {id:539, year:1960},     // Psicose
-  {id:238, year:1972},     // Poderoso Chefão
-  {id:11, year:1977},      // Star Wars
-  {id:329, year:1993},     // Jurassic Park
-  {id:603, year:1999},     // Matrix
-  {id:120, year:2001},     // Senhor dos Anéis
-  {id:19995, year:2009},   // Avatar
-  {id:299534, year:2019},  // Ultimato
-  {id:872585, year:2023}   // Oppenheimer
+  {id:770, year:1939},
+  {id:539, year:1960},
+  {id:238, year:1972},
+  {id:11, year:1977},
+  {id:329, year:1993},
+  {id:603, year:1999},
+  {id:120, year:2001},
+  {id:19995, year:2009},
+  {id:299534, year:2019},
+  {id:872585, year:2023}
 ];
 
-let round = pool.slice(0,4);
+let currentSize = 4;
 let errors = 0;
 let dragged = null;
 let placeholder = null;
@@ -197,12 +178,13 @@ document.getElementById("record").innerText = record ?? "—";
 const moviesDiv = document.getElementById("movies");
 const timeline = document.getElementById("timeline");
 
-// =============================
+// ================= LOAD =================
 async function load(){
   moviesDiv.innerHTML = "";
   timeline.innerHTML = "";
 
-  round = round.sort(()=>Math.random()-0.5);
+  const round = pool.slice(0, currentSize)
+    .sort(()=>Math.random()-0.5);
 
   for(const m of round){
     const res = await fetch(
@@ -219,23 +201,21 @@ async function load(){
       <p>${data.title}</p>
     `;
 
-    addDragEvents(card);
+    addDrag(card);
     moviesDiv.appendChild(card);
   }
 }
 
-// =============================
-// DRAG UX BOM
-// =============================
-function addDragEvents(card){
+// ================= DRAG =================
+function addDrag(card){
   card.addEventListener("dragstart", ()=>{
     dragged = card;
     card.style.opacity = ".4";
 
     placeholder = document.createElement("div");
     placeholder.className = "movie placeholder";
-    placeholder.style.width = card.offsetWidth + "px";
-    placeholder.style.height = card.offsetHeight + "px";
+    placeholder.style.width = card.offsetWidth+"px";
+    placeholder.style.height = card.offsetHeight+"px";
   });
 
   card.addEventListener("dragend", ()=>{
@@ -247,12 +227,9 @@ function addDragEvents(card){
 
 timeline.addEventListener("dragover", e=>{
   e.preventDefault();
-  const after = getAfterElement(timeline, e.clientX);
-  if(after == null){
-    timeline.appendChild(placeholder);
-  }else{
-    timeline.insertBefore(placeholder, after);
-  }
+  const after = getAfter(timeline, e.clientX);
+  after ? timeline.insertBefore(placeholder, after)
+        : timeline.appendChild(placeholder);
 });
 
 timeline.addEventListener("drop", e=>{
@@ -263,41 +240,43 @@ timeline.addEventListener("drop", e=>{
   }
 });
 
-function getAfterElement(container, x){
-  const items = [...container.querySelectorAll(".movie:not(.placeholder)")];
-  return items.reduce((closest, child)=>{
-    const box = child.getBoundingClientRect();
-    const offset = x - box.left - box.width / 2;
-    if(offset < 0 && offset > closest.offset){
-      return {offset, element: child};
+function getAfter(container, x){
+  const els = [...container.querySelectorAll(".movie:not(.placeholder)")];
+  return els.reduce((c, el)=>{
+    const box = el.getBoundingClientRect();
+    const offset = x - box.left - box.width/2;
+    if(offset < 0 && offset > c.offset){
+      return {offset, el};
     }
-    return closest;
-  }, {offset:Number.NEGATIVE_INFINITY}).element;
+    return c;
+  },{offset:-Infinity}).el;
 }
 
-// =============================
+// ================= CHECK =================
 function checkOrder(){
   const items = [...timeline.querySelectorAll(".movie")];
-  if(items.length !== round.length){
+  if(items.length !== currentSize){
     alert("Arraste todos os filmes para a linha do tempo!");
     return;
   }
 
-  const years = items.map(i=>Number(i.dataset.year));
+  const years = items.map(i=>+i.dataset.year);
   const sorted = [...years].sort((a,b)=>a-b);
 
   if(JSON.stringify(years) === JSON.stringify(sorted)){
-    alert("🎉 Ordem correta! Cinema puro!");
+    alert("🎉 Ordem correta! Mandou bem!");
     if(!record || errors < record){
       localStorage.setItem("movieTriviaCinema", errors);
     }
   }else{
     errors++;
     document.getElementById("errors").innerText = errors;
-    alert("❌ Ordem errada! Um novo filme entrou.");
 
-    if(pool.length > round.length){
-      round.push(pool[round.length]);
+    if(currentSize < pool.length){
+      currentSize++;
+      alert("❌ Errado! Um novo filme entrou na linha do tempo.");
+    }else{
+      alert("❌ Errado! Última rodada!");
     }
     load();
   }
