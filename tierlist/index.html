@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tierlist PagoMeia</title>
 
+<!-- PIXEL FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
 <style>
 :root{
   --bg:#1a1325;
@@ -18,7 +21,10 @@ body{
   font-family:Arial;margin:0;padding:20px
 }
 .header-title{
-  text-align:center;font-size:32px;font-weight:bold;margin-bottom:12px
+  text-align:center;
+  font-size:22px;
+  font-family:'Press Start 2P', monospace;
+  margin-bottom:18px
 }
 .controls{text-align:center;margin-bottom:15px}
 button{
@@ -39,7 +45,11 @@ button{
   display:flex;gap:6px;
   padding:6px;min-height:90px
 }
-.deleteBtn{background:#e74c3c;margin-left:6px}
+.deleteBtn{
+  background:#e74c3c;
+  margin-left:6px;
+  cursor:pointer
+}
 .pool{
   background:var(--pool);padding:10px;
   display:flex;gap:6px;
@@ -133,13 +143,11 @@ Minha Tier List
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
 const tiers=document.getElementById('tiers');
 const pool=document.getElementById('pool');
 const colors=['#ff4d4d','#ff9f1a','#f1c40f','#2ecc71','#3498db','#9b59b6'];
-let selectedColor=colors[0];
 
 function initSortable(){
   document.querySelectorAll('.row,.pool').forEach(el=>{
@@ -147,13 +155,17 @@ function initSortable(){
   });
 }
 
-function createImg(src){
-  const w=document.createElement('div');
-  w.className='img-wrapper';
-  w.innerHTML=`<img src="${src}"><div class="remove-img">×</div>`;
-  w.querySelector('.remove-img').onclick=()=>{w.remove();saveState()};
-  return w;
-}
+/* === DELEGAÇÃO DE EVENTOS (BUG FIX) === */
+document.addEventListener('click',e=>{
+  if(e.target.classList.contains('deleteBtn')){
+    e.target.closest('.tier').remove();
+    saveState();
+  }
+  if(e.target.classList.contains('remove-img')){
+    e.target.parentElement.remove();
+    saveState();
+  }
+});
 
 function createTier(text,color){
   const tier=document.createElement('div');
@@ -163,7 +175,6 @@ function createTier(text,color){
     <div class="row"></div>
     <button class="deleteBtn">X</button>
   `;
-  tier.querySelector('.deleteBtn').onclick=()=>{tier.remove();saveState()};
   tiers.appendChild(tier);
   initSortable();
 }
@@ -180,18 +191,6 @@ function loadTemplate(type){
   saveState();
 }
 
-function setTheme(t){
-  const themes={
-    dark:['#121212','#1e1e1e','#0e0e0e','#2ecc71'],
-    purple:['#1a1325','#2a1f3d','#140e1f','#9b59b6'],
-    green:['#10231a','#1e3d2b','#0b1812','#2ecc71'],
-    orange:['#2b1607','#402008','#1d0e04','#e67e22']
-  }[t];
-  ['--bg','--row','--pool','--btn']
-    .forEach((v,i)=>document.documentElement.style.setProperty(v,themes[i]));
-  saveState();
-}
-
 /* AUTO SAVE */
 function saveState(){
   localStorage.setItem('tier_state',JSON.stringify({
@@ -204,8 +203,7 @@ function saveState(){
 function loadState(){
   const s=localStorage.getItem('tier_state');
   if(!s){
-    loadTemplate('series'); // 👈 PADRÃO SÉRIES
-    setTheme('purple');     // 👈 PADRÃO VISUAL
+    loadTemplate('series');
     return;
   }
   const d=JSON.parse(s);
@@ -221,6 +219,7 @@ document.querySelectorAll('.modal').forEach(m=>{
   m.onclick=e=>e.target===m&&(m.style.display='none');
 });
 
+title.addEventListener('input',saveState);
 window.addEventListener('load',loadState);
 </script>
 
