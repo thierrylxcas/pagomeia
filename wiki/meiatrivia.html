@@ -14,7 +14,7 @@
   --line:#4b5563;
 }
 
-*{box-sizing:border-box;}
+*{box-sizing:border-box;touch-action:none}
 
 body{
   margin:0;
@@ -100,7 +100,7 @@ body{
 }
 
 .drop-zone.active{
-  background:rgba(139,92,246,.15);
+  background:rgba(139,92,246,.2);
   border-radius:10px;
 }
 
@@ -113,9 +113,15 @@ body{
   overflow:hidden;
   cursor:grab;
   box-shadow:0 14px 35px rgba(0,0,0,.5);
+  position:relative;
 }
 
-.current.dragging{opacity:.6}
+.current.dragging{
+  opacity:.85;
+  position:fixed;
+  z-index:9999;
+  pointer-events:none;
+}
 
 .current img{width:100%}
 .current h2{
@@ -160,7 +166,7 @@ body{
     <div class="timeline" id="timeline"></div>
   </div>
 
-  <div class="current" id="current" draggable="true">
+  <div class="current" id="current">
     <img id="poster">
     <h2 id="title"></h2>
   </div>
@@ -176,14 +182,12 @@ body{
 const API_KEY="69f20920b621de40289df7481ea14b29";
 const IMG="https://image.tmdb.org/t/p/w300";
 
-let timeline=[];
-let pool=[];
-let used=new Set();
-let current=null;
-let score=0;
-let lives=3;
+let timeline=[], pool=[], used=new Set();
+let current=null, score=0, lives=3;
+let dragging=false, dragEl=null;
 
 const timelineEl=document.getElementById("timeline");
+const currentEl=document.getElementById("current");
 const scoreEl=document.getElementById("score");
 
 /* UI */
@@ -223,13 +227,10 @@ function nextMovie(){
   title.textContent=current.title;
 }
 
-/* TIMELINE (CORRIGIDA) */
+/* TIMELINE */
 function renderTimeline(){
   timelineEl.innerHTML="";
-
-  // DROP ANTES DO PRIMEIRO
   createDropZone(0);
-
   timeline.forEach((item,i)=>{
     const el=document.createElement("div");
     el.className="timeline-item";
@@ -239,8 +240,6 @@ function renderTimeline(){
         ${item.release_date.slice(0,4)}
       </div>`;
     timelineEl.appendChild(el);
-
-    // DROP DEPOIS DE CADA ITEM
     createDropZone(i+1);
   });
 }
@@ -248,9 +247,7 @@ function renderTimeline(){
 function createDropZone(index){
   const dz=document.createElement("div");
   dz.className="drop-zone";
-  dz.ondragover=e=>{e.preventDefault();dz.classList.add("active");};
-  dz.ondragleave=()=>dz.classList.remove("active");
-  dz.ondrop=()=>placeMovie(index);
+  dz.dataset.index=index;
   timelineEl.appendChild(dz);
 }
 
@@ -279,10 +276,46 @@ function placeMovie(index){
   nextMovie();
 }
 
-/* DRAG */
-currentEl=document.getElementById("current");
-currentEl.ondragstart=()=>currentEl.classList.add("dragging");
-currentEl.ondragend=()=>currentEl.classList.remove("dragging");
+/* DRAG (MOUSE + TOUCH) */
+currentEl.addEventListener("pointerdown",e=>{
+  dragging=true;
+  dragEl=currentEl;
+  dragEl.classList.add("dragging");
+});
+
+window.addEventListener("pointermove",e=>{
+  if(!dragging)return;
+  dragEl.style.left=e.clientX-75+"px";
+  dragEl.style.top=e.clientY-90+"px";
+
+  document.querySelectorAll(".drop-zone").forEach(dz=>{
+    const r=dz.getBoundingClientRect();
+    dz.classList.toggle(
+      "active",
+      e.clientX>r.left && e.clientX<r.right &&
+      e.clientY>r.top && e.clientY<r.bottom
+    );
+  });
+});
+
+window.addEventListener("pointerup",e=>{
+  if(!dragging)return;
+  dragging=false;
+  dragEl.classList.remove("dragging");
+  dragEl.style.left="";
+  dragEl.style.top="";
+
+  document.querySelectorAll(".drop-zone").forEach(dz=>{
+    dz.classList.remove("active");
+    const r=dz.getBoundingClientRect();
+    if(
+      e.clientX>r.left && e.clientX<r.right &&
+      e.clientY>r.top && e.clientY<r.bottom
+    ){
+      placeMovie(+dz.dataset.index);
+    }
+  });
+});
 
 /* FLOW */
 function endGame(){
