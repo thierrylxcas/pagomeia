@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>MovieTrivia • História do Cinema</title>
+<title>MovieTrivia • Linha do Tempo</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
 
@@ -33,34 +33,27 @@ header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:25px;
+  margin-bottom:20px;
 }
 
-.stats{
-  display:flex;
-  gap:20px;
-  font-size:14px;
-}
+.stats{display:flex;gap:20px;font-size:14px}
 
 .board{
   background:var(--card);
   border-radius:22px;
   padding:25px;
   box-shadow:0 0 40px rgba(127,61,255,.15);
+  text-align:center;
 }
 
-.movies{
-  display:flex;
-  justify-content:center;
-  gap:18px;
-  flex-wrap:wrap;
-  margin-bottom:25px;
+.current{
+  margin-bottom:20px;
 }
 
 .movie{
-  width:140px;
-  text-align:center;
+  width:150px;
   cursor:grab;
+  transition:transform .25s ease;
 }
 
 .movie img{
@@ -77,8 +70,8 @@ header{
 
 .timeline{
   position:relative;
-  margin:20px 0;
-  padding:35px 10px;
+  margin-top:30px;
+  padding:40px 10px;
 }
 
 .timeline::before{
@@ -100,26 +93,15 @@ header{
   display:flex;
   justify-content:center;
   gap:18px;
-  min-height:190px;
+  min-height:200px;
 }
 
 .placeholder{
-  opacity:.25;
   border:2px dashed var(--purple);
   border-radius:14px;
+  opacity:.35;
+  transition:all .2s ease;
 }
-
-button{
-  margin-top:20px;
-  padding:12px 26px;
-  border:none;
-  border-radius:999px;
-  background:linear-gradient(135deg,var(--purple),var(--purple2));
-  color:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-
 </style>
 </head>
 <body>
@@ -127,33 +109,32 @@ button{
 <div class="game">
 
 <header>
-  <h1>🎬 MovieTrivia</h1>
+  <h2>🎬 MovieTrivia</h2>
   <div class="stats">
     <div>❌ Erros: <strong id="errors">0</strong></div>
-    <div>🏆 Recorde: <strong id="record">—</strong></div>
   </div>
 </header>
 
 <div class="board">
-  <p>Arraste os filmes para a linha do tempo, do mais antigo ao mais recente.</p>
 
-  <div class="movies" id="movies"></div>
+  <p>Arraste o filme para a posição correta na linha do tempo.</p>
+
+  <div class="current" id="current"></div>
 
   <div class="timeline">
     <div class="timeline-zone" id="timeline"></div>
   </div>
 
-  <button onclick="checkOrder()">Confirmar ordem</button>
 </div>
 
 </div>
 
 <script>
-// ================= TMDB =================
+// ================= CONFIG =================
 const API_KEY = "69f20920b621de40289df7481ea14b29";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
-// ======= POOL FIXO (ordem real escondida) =======
+// Pool cronológico REAL (ordem escondida)
 const pool = [
   {id:770, year:1939},
   {id:539, year:1960},
@@ -167,47 +148,52 @@ const pool = [
   {id:872585, year:2023}
 ];
 
-let currentSize = 4;
+let index = 0;
 let errors = 0;
 let dragged = null;
 let placeholder = null;
 
-const record = localStorage.getItem("movieTriviaCinema");
-document.getElementById("record").innerText = record ?? "—";
-
-const moviesDiv = document.getElementById("movies");
 const timeline = document.getElementById("timeline");
+const currentDiv = document.getElementById("current");
 
 // ================= LOAD =================
-async function load(){
-  moviesDiv.innerHTML = "";
-  timeline.innerHTML = "";
+async function createCard(movie){
+  const res = await fetch(
+    `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${API_KEY}&language=pt-BR`
+  );
+  const data = await res.json();
 
-  const round = pool.slice(0, currentSize)
-    .sort(()=>Math.random()-0.5);
+  const card = document.createElement("div");
+  card.className = "movie";
+  card.dataset.year = movie.year;
+  card.draggable = true;
+  card.innerHTML = `
+    <img src="${IMG + data.poster_path}">
+    <p>${data.title}</p>
+  `;
 
-  for(const m of round){
-    const res = await fetch(
-      `https://api.themoviedb.org/3/movie/${m.id}?api_key=${API_KEY}&language=pt-BR`
-    );
-    const data = await res.json();
-
-    const card = document.createElement("div");
-    card.className = "movie";
-    card.draggable = true;
-    card.dataset.year = m.year;
-    card.innerHTML = `
-      <img src="${IMG + data.poster_path}">
-      <p>${data.title}</p>
-    `;
-
-    addDrag(card);
-    moviesDiv.appendChild(card);
-  }
+  enableDrag(card);
+  return card;
 }
 
-// ================= DRAG =================
-function addDrag(card){
+async function start(){
+  const first = await createCard(pool[index++]);
+  timeline.appendChild(first);
+  nextMovie();
+}
+
+async function nextMovie(){
+  if(index >= pool.length){
+    alert("🎉 Você completou a linha do tempo!");
+    return;
+  }
+  currentDiv.innerHTML = "";
+  const card = await createCard(pool[index]);
+  currentDiv.appendChild(card);
+}
+
+// ================= DRAG UX =================
+function enableDrag(card){
   card.addEventListener("dragstart", ()=>{
     dragged = card;
     card.style.opacity = ".4";
@@ -232,57 +218,45 @@ timeline.addEventListener("dragover", e=>{
         : timeline.appendChild(placeholder);
 });
 
-timeline.addEventListener("drop", e=>{
-  e.preventDefault();
-  if(dragged && placeholder){
-    timeline.insertBefore(dragged, placeholder);
-    placeholder.remove();
-  }
+timeline.addEventListener("drop", ()=>{
+  if(!dragged || !placeholder) return;
+
+  timeline.insertBefore(dragged, placeholder);
+  placeholder.remove();
+
+  validate();
 });
 
 function getAfter(container, x){
   const els = [...container.querySelectorAll(".movie:not(.placeholder)")];
   return els.reduce((c, el)=>{
     const box = el.getBoundingClientRect();
-    const offset = x - box.left - box.width/2;
+    const offset = x - box.left - box.width / 2;
     if(offset < 0 && offset > c.offset){
       return {offset, el};
     }
     return c;
-  },{offset:-Infinity}).el;
+  }, {offset:-Infinity}).el;
 }
 
 // ================= CHECK =================
-function checkOrder(){
-  const items = [...timeline.querySelectorAll(".movie")];
-  if(items.length !== currentSize){
-    alert("Arraste todos os filmes para a linha do tempo!");
-    return;
-  }
-
+function validate(){
+  const items = [...timeline.children];
   const years = items.map(i=>+i.dataset.year);
   const sorted = [...years].sort((a,b)=>a-b);
 
   if(JSON.stringify(years) === JSON.stringify(sorted)){
-    alert("🎉 Ordem correta! Mandou bem!");
-    if(!record || errors < record){
-      localStorage.setItem("movieTriviaCinema", errors);
-    }
+    index++;
+    nextMovie();
   }else{
     errors++;
     document.getElementById("errors").innerText = errors;
-
-    if(currentSize < pool.length){
-      currentSize++;
-      alert("❌ Errado! Um novo filme entrou na linha do tempo.");
-    }else{
-      alert("❌ Errado! Última rodada!");
-    }
-    load();
+    timeline.removeChild(dragged);
+    nextMovie();
   }
 }
 
-load();
+start();
 </script>
 
 </body>
