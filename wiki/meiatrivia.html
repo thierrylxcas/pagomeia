@@ -2,7 +2,7 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>MovieTrivia • Linha do Tempo</title>
+<title>MovieTrivia</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
 
@@ -11,7 +11,7 @@
   --bg:#0f0f14;
   --card:#1b1b26;
   --purple:#7f3dff;
-  --purple2:#a57bff;
+  --red:#ff4d4d;
   --text:#fff;
 }
 
@@ -24,10 +24,10 @@ body{
   color:var(--text);
   display:flex;
   justify-content:center;
-  padding:30px 20px;
+  padding:25px;
 }
 
-.game{max-width:900px;width:100%}
+.game{max-width:950px;width:100%}
 
 header{
   display:flex;
@@ -36,24 +36,25 @@ header{
   margin-bottom:20px;
 }
 
-.stats{display:flex;gap:20px;font-size:14px}
+.hearts{font-size:20px}
+.score{font-size:16px}
 
 .board{
   background:var(--card);
   border-radius:22px;
   padding:25px;
-  box-shadow:0 0 40px rgba(127,61,255,.15);
+  box-shadow:0 0 40px rgba(127,61,255,.18);
   text-align:center;
 }
 
 .current{
-  margin-bottom:20px;
+  margin-bottom:25px;
 }
 
 .movie{
   width:150px;
   cursor:grab;
-  transition:transform .25s ease;
+  transition:.25s ease;
 }
 
 .movie img{
@@ -65,8 +66,15 @@ header{
 
 .movie p{
   font-size:13px;
-  margin-top:8px;
+  margin:6px 0 0;
 }
+
+.year{
+  font-size:12px;
+  opacity:.7;
+}
+
+.year.wrong{color:var(--red)}
 
 .timeline{
   position:relative;
@@ -93,14 +101,13 @@ header{
   display:flex;
   justify-content:center;
   gap:18px;
-  min-height:200px;
+  min-height:210px;
 }
 
 .placeholder{
   border:2px dashed var(--purple);
   border-radius:14px;
   opacity:.35;
-  transition:all .2s ease;
 }
 </style>
 </head>
@@ -109,10 +116,8 @@ header{
 <div class="game">
 
 <header>
-  <h2>🎬 MovieTrivia</h2>
-  <div class="stats">
-    <div>❌ Erros: <strong id="errors">0</strong></div>
-  </div>
+  <div class="hearts" id="hearts">❤️❤️❤️</div>
+  <div class="score">⭐ Pontos: <strong id="score">0</strong></div>
 </header>
 
 <div class="board">
@@ -130,11 +135,15 @@ header{
 </div>
 
 <script>
-// ================= CONFIG =================
 const API_KEY = "69f20920b621de40289df7481ea14b29";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
-// Pool cronológico REAL (ordem escondida)
+let lives = 3;
+let score = 0;
+let index = 0;
+let dragged = null;
+let placeholder = null;
+
 const pool = [
   {id:770, year:1939},
   {id:539, year:1960},
@@ -146,17 +155,16 @@ const pool = [
   {id:19995, year:2009},
   {id:299534, year:2019},
   {id:872585, year:2023}
-];
-
-let index = 0;
-let errors = 0;
-let dragged = null;
-let placeholder = null;
+].sort(()=>Math.random()-0.5);
 
 const timeline = document.getElementById("timeline");
-const currentDiv = document.getElementById("current");
+const current = document.getElementById("current");
 
-// ================= LOAD =================
+function updateHUD(){
+  document.getElementById("hearts").innerText = "❤️".repeat(lives);
+  document.getElementById("score").innerText = score;
+}
+
 async function createCard(movie){
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${API_KEY}&language=pt-BR`
@@ -170,29 +178,13 @@ async function createCard(movie){
   card.innerHTML = `
     <img src="${IMG + data.poster_path}">
     <p>${data.title}</p>
+    <div class="year">${movie.year}</div>
   `;
 
   enableDrag(card);
   return card;
 }
 
-async function start(){
-  const first = await createCard(pool[index++]);
-  timeline.appendChild(first);
-  nextMovie();
-}
-
-async function nextMovie(){
-  if(index >= pool.length){
-    alert("🎉 Você completou a linha do tempo!");
-    return;
-  }
-  currentDiv.innerHTML = "";
-  const card = await createCard(pool[index]);
-  currentDiv.appendChild(card);
-}
-
-// ================= DRAG UX =================
 function enableDrag(card){
   card.addEventListener("dragstart", ()=>{
     dragged = card;
@@ -207,7 +199,6 @@ function enableDrag(card){
   card.addEventListener("dragend", ()=>{
     card.style.opacity = "1";
     placeholder?.remove();
-    dragged = null;
   });
 }
 
@@ -219,11 +210,9 @@ timeline.addEventListener("dragover", e=>{
 });
 
 timeline.addEventListener("drop", ()=>{
-  if(!dragged || !placeholder) return;
-
+  if(!dragged) return;
   timeline.insertBefore(dragged, placeholder);
   placeholder.remove();
-
   validate();
 });
 
@@ -231,32 +220,54 @@ function getAfter(container, x){
   const els = [...container.querySelectorAll(".movie:not(.placeholder)")];
   return els.reduce((c, el)=>{
     const box = el.getBoundingClientRect();
-    const offset = x - box.left - box.width / 2;
+    const offset = x - box.left - box.width/2;
     if(offset < 0 && offset > c.offset){
       return {offset, el};
     }
     return c;
-  }, {offset:-Infinity}).el;
+  },{offset:-Infinity}).el;
 }
 
-// ================= CHECK =================
 function validate(){
   const items = [...timeline.children];
   const years = items.map(i=>+i.dataset.year);
   const sorted = [...years].sort((a,b)=>a-b);
 
   if(JSON.stringify(years) === JSON.stringify(sorted)){
+    score += 10;
     index++;
     nextMovie();
   }else{
-    errors++;
-    document.getElementById("errors").innerText = errors;
-    timeline.removeChild(dragged);
-    nextMovie();
+    lives--;
+    dragged.querySelector(".year").classList.add("wrong");
+    updateHUD();
+
+    if(lives === 0){
+      alert("💀 Game Over!");
+      location.reload();
+    }else{
+      timeline.removeChild(dragged);
+      nextMovie();
+    }
   }
 }
 
-start();
+async function nextMovie(){
+  if(index >= pool.length){
+    alert("🏆 Você completou a linha do tempo!");
+    return;
+  }
+  current.innerHTML = "";
+  const card = await createCard(pool[index]);
+  current.appendChild(card);
+  updateHUD();
+}
+
+(async()=>{
+  const first = await createCard(pool[index++]);
+  timeline.appendChild(first);
+  nextMovie();
+})();
 </script>
 
 </body>
