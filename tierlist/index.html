@@ -171,13 +171,13 @@ function createTier(text='Novo',color=selectedColor){
 }
 
 /* MODAL CRIAR */
-addTier.onclick=()=>{
+addTier.onclick = function(){
   colorGrid.innerHTML='';
-  colors.forEach(c=>{
+  colors.forEach(function(c){
     const d=document.createElement('div');
     d.className='color';
     d.style.background=c;
-    d.onclick=()=>selectedColor=c;
+    d.onclick = function(){ selectedColor = c; };
     colorGrid.appendChild(d);
   });
   tierModal.style.display='flex';
@@ -239,7 +239,7 @@ themeBtn.onclick=()=>themeModal.style.display='flex';
 
 /* ===== FIX: remover undefined ===== */
 document.querySelectorAll('.modal').forEach(m=>{
-  m.onclick = e => {
+  m.onclick = function(e){
     if(e.target === m){
       m.style.display = 'none';
     }
