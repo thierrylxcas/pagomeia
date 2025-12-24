@@ -2,9 +2,9 @@
 <html lang="pt-br">
 <head>
 <meta charset="UTF-8">
-<title>MovieTrivia</title>
+<title>MeiaWiki</title>
 
-<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;700&family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 :root{
@@ -12,6 +12,7 @@
   --card:#1b1b26;
   --purple:#7f3dff;
   --red:#ff4d4d;
+  --yellow:#ffd800;
   --text:#fff;
 }
 
@@ -27,13 +28,13 @@ body{
   padding:25px;
 }
 
-.game{max-width:950px;width:100%}
+.game{max-width:980px;width:100%}
 
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:20px;
+  margin-bottom:15px;
 }
 
 .hearts{font-size:20px}
@@ -45,6 +46,18 @@ header{
   padding:25px;
   box-shadow:0 0 40px rgba(127,61,255,.18);
   text-align:center;
+}
+
+.instruction{
+  font-family:'Press Start 2P', monospace;
+  color:var(--yellow);
+  font-size:12px;
+  margin-bottom:25px;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
 }
 
 .current{margin-bottom:25px}
@@ -70,16 +83,11 @@ header{
 .year{
   font-size:12px;
   opacity:.75;
-}
-
-.year.hidden{
   visibility:hidden;
 }
 
-.year.wrong{
-  color:var(--red);
-  visibility:visible;
-}
+.year.show{visibility:visible}
+.year.wrong{color:var(--red)}
 
 .timeline{
   position:relative;
@@ -126,7 +134,9 @@ header{
 </header>
 
 <div class="board">
-  <p>Arraste o filme para a posição correta na linha do tempo.</p>
+  <div class="instruction">
+    Arraste o filme para a posição correta na linha do tempo.
+  </div>
 
   <div class="current" id="current"></div>
 
@@ -143,33 +153,44 @@ const IMG = "https://image.tmdb.org/t/p/w500";
 
 let lives = 3;
 let score = 0;
-let index = 0;
+let difficulty = 0;
 let dragged = null;
 let placeholder = null;
 
-// Pool POPULAR + CULTURAL (ordem embaralhada)
-const pool = [
-  {id:238, year:1972},     // O Poderoso Chefão
-  {id:11, year:1977},      // Star Wars
-  {id:539, year:1960},     // Psicose
-  {id:770, year:1939},     // E o Vento Levou
-  {id:603, year:1999},     // Matrix
-  {id:329, year:1993},     // Jurassic Park
-  {id:120, year:2001},     // Senhor dos Anéis
-  {id:19995, year:2009},   // Avatar
-  {id:299534, year:2019},  // Vingadores Ultimato
-  {id:872585, year:2023}   // Oppenheimer
-].sort(()=>Math.random()-0.5);
+const basePool = [
+  {id:770, year:1939},
+  {id:539, year:1960},
+  {id:238, year:1972},
+  {id:11, year:1977},
+  {id:329, year:1993},
+  {id:603, year:1999},
+  {id:120, year:2001},
+  {id:19995, year:2009},
+  {id:299534, year:2019},
+  {id:872585, year:2023},
+  {id:424, year:1994},     // Pulp Fiction
+  {id:680, year:1994},     // Forrest Gump
+  {id:155, year:2008},     // Batman Dark Knight
+  {id:27205, year:2010},   // Inception
+  {id:13, year:1994}       // Forrest
+];
+
+let pool = shuffle([...basePool]);
+let index = 0;
 
 const timeline = document.getElementById("timeline");
 const current = document.getElementById("current");
+
+function shuffle(arr){
+  return arr.sort(()=>Math.random()-0.5);
+}
 
 function updateHUD(){
   document.getElementById("hearts").innerText = "❤️".repeat(lives);
   document.getElementById("score").innerText = score;
 }
 
-async function createCard(movie, revealYear){
+async function createCard(movie, reveal){
   const res = await fetch(
     `https://api.themoviedb.org/3/movie/${movie.id}?api_key=${API_KEY}&language=pt-BR`
   );
@@ -183,7 +204,7 @@ async function createCard(movie, revealYear){
   card.innerHTML = `
     <img src="${IMG + data.poster_path}">
     <p>${data.title}</p>
-    <div class="year ${revealYear ? "" : "hidden"}">${movie.year}</div>
+    <div class="year ${reveal ? "show" : ""}">${movie.year}</div>
   `;
 
   enableDrag(card);
@@ -216,10 +237,11 @@ timeline.addEventListener("dragover", e=>{
 
 timeline.addEventListener("drop", ()=>{
   if(!dragged) return;
+
   timeline.insertBefore(dragged, placeholder);
   placeholder.remove();
+  dragged.querySelector(".year").classList.add("show");
 
-  dragged.querySelector(".year").classList.remove("hidden");
   validate();
 });
 
@@ -241,16 +263,16 @@ function validate(){
   const sorted = [...years].sort((a,b)=>a-b);
 
   if(JSON.stringify(years) === JSON.stringify(sorted)){
-    score += 10;
-    index++;
+    score += Math.max(5, 15 - difficulty);
+    difficulty++;
     nextMovie();
   }else{
     lives--;
     dragged.querySelector(".year").classList.add("wrong");
     updateHUD();
 
-    if(lives === 0){
-      alert("💀 Game Over!");
+    if(lives <= 0){
+      alert("💀 GAME OVER\nPontuação: " + score);
       location.reload();
     }else{
       timeline.removeChild(dragged);
@@ -261,11 +283,12 @@ function validate(){
 
 async function nextMovie(){
   if(index >= pool.length){
-    alert("🏆 Você completou a linha do tempo!");
-    return;
+    pool = shuffle([...basePool]);
+    index = 0;
   }
+
   current.innerHTML = "";
-  const card = await createCard(pool[index], false);
+  const card = await createCard(pool[index++], false);
   current.appendChild(card);
   updateHUD();
 }
