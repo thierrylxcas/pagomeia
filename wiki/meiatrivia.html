@@ -143,6 +143,7 @@ header{
 
 </div>
 
+<script>
 const API_KEY = "69f20920b621de40289df7481ea14b29";
 const IMG = "https://image.tmdb.org/t/p/w500";
 
@@ -157,16 +158,16 @@ let movieQueue = [];
 let usedIds = new Set();
 let recentYears = [];
 
-/* 🔥 40+ âncoras reais da história do cinema */
+/* 🔥 40+ âncoras de anos (1930–2025) */
 const yearAnchors = [
   1931,1937,1942,1949,
   1954,1959,
-  1962,1968,
+  1962,1966,1968,
   1971,1974,1978,
   1981,1984,1987,
   1990,1993,1996,1999,
   2001,2003,2006,2009,
-  2011,2014,2016,2018,
+  2011,2013,2014,2016,2018,
   2020,2021,2022,2023,2024,2025
 ];
 
@@ -178,14 +179,14 @@ function updateHUD(){
   document.getElementById("score").innerText = score;
 }
 
-/* Evita repetir anos próximos */
+/* evita repetir anos próximos */
 function pickAnchor(){
-  let pool = yearAnchors.filter(y =>
+  const pool = yearAnchors.filter(y =>
     !recentYears.some(r => Math.abs(r - y) < 4)
   );
   return pool.length
-    ? pool[Math.floor(Math.random()*pool.length)]
-    : yearAnchors[Math.floor(Math.random()*yearAnchors.length)];
+    ? pool[Math.floor(Math.random() * pool.length)]
+    : yearAnchors[Math.floor(Math.random() * yearAnchors.length)];
 }
 
 async function fetchByAnchor(anchor){
@@ -194,11 +195,7 @@ async function fetchByAnchor(anchor){
   const page = Math.floor(Math.random() * 8) + 1;
 
   const res = await fetch(
-    `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}
-    &primary_release_date.gte=${start}-01-01
-    &primary_release_date.lte=${end}-12-31
-    &sort_by=popularity.desc
-    &page=${page}`
+    `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${start}-01-01&primary_release_date.lte=${end}-12-31&sort_by=popularity.desc&page=${page}`
   );
 
   const data = await res.json();
@@ -221,14 +218,105 @@ async function getNextMovie(){
 
   const year = +movie.release_date.slice(0,4);
   recentYears.push(year);
-  if(recentYears.length > 7) recentYears.shift();
+  if(recentYears.length > 6) recentYears.shift();
 
   return movie;
 }
-</script>
 
+async function createCard(movie, reveal){
+  const year = movie.release_date.slice(0,4);
+  const card = document.createElement("div");
+  card.className = "movie";
+  card.dataset.year = year;
+  card.draggable = true;
+
+  card.innerHTML = `
+    <img src="${IMG + movie.poster_path}">
+    <div class="year ${reveal ? "show" : ""}">${year}</div>
+  `;
+  enableDrag(card);
+  return card;
+}
+
+function enableDrag(card){
+  card.addEventListener("dragstart", ()=>{
+    dragged = card;
+    card.style.opacity = ".4";
+    placeholder = document.createElement("div");
+    placeholder.className = "movie placeholder";
+    placeholder.style.width = card.offsetWidth+"px";
+    placeholder.style.height = card.offsetHeight+"px";
+  });
+  card.addEventListener("dragend", ()=>{
+    card.style.opacity = "1";
+    placeholder?.remove();
+  });
+}
+
+timeline.addEventListener("dragover", e=>{
+  e.preventDefault();
+  const after = getAfter(timeline, e.clientX);
+  after ? timeline.insertBefore(placeholder, after)
+        : timeline.appendChild(placeholder);
+});
+
+timeline.addEventListener("drop", ()=>{
+  timeline.insertBefore(dragged, placeholder);
+  placeholder.remove();
+  dragged.querySelector(".year").classList.add("show");
+  validate();
+});
+
+function getAfter(container, x){
+  const els = [...container.querySelectorAll(".movie:not(.placeholder)")];
+  return els.reduce((c, el)=>{
+    const box = el.getBoundingClientRect();
+    const offset = x - box.left - box.width/2;
+    if(offset < 0 && offset > c.offset){
+      return {offset, el};
+    }
+    return c;
+  },{offset:-Infinity}).el;
+}
+
+function reorder(){
+  [...timeline.children]
+    .sort((a,b)=>a.dataset.year - b.dataset.year)
+    .forEach(el=>timeline.appendChild(el));
+}
+
+function validate(){
+  const years = [...timeline.children].map(i=>+i.dataset.year);
+  const sorted = [...years].sort((a,b)=>a-b);
+
+  if(JSON.stringify(years) === JSON.stringify(sorted)){
+    score += Math.max(5, 15 - difficulty++);
+  }else{
+    lives--;
+    dragged.querySelector(".year").classList.add("wrong");
+    reorder();
+    if(lives <= 0){
+      alert("💀 GAME OVER\nPontuação: " + score);
+      location.reload();
+      return;
+    }
+  }
+  updateHUD();
+  nextMovie();
+}
+
+async function nextMovie(){
+  current.innerHTML = "";
+  const movie = await getNextMovie();
+  current.appendChild(await createCard(movie, false));
+}
+
+(async()=>{
+  const first = await getNextMovie();
+  timeline.appendChild(await createCard(first, true));
+  nextMovie();
+})();
+</script>
 
 </body>
 </html>
-
-
