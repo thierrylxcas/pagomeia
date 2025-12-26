@@ -133,6 +133,11 @@
   const links = document.querySelectorAll('[data-link]');
   const transition = document.getElementById('transition');
 
+  /* GARANTE QUE AO VOLTAR PARA O MENU NÃO FIQUE TRAVADO */
+  window.addEventListener('pageshow', () => {
+    transition.classList.remove('active');
+  });
+
   links.forEach(link => {
     link.addEventListener('click', e => {
       e.preventDefault();
@@ -149,3 +154,4 @@
 
 </body>
 </html>
+
