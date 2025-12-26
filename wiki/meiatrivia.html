@@ -58,7 +58,6 @@ header{
 .movie{
   width:150px;
   cursor:grab;
-  transition:.25s ease;
 }
 
 .movie img{
@@ -136,6 +135,8 @@ const IMG = "https://image.tmdb.org/t/p/w500";
 
 let lives = 3;
 let score = 0;
+let dragged = null;
+let placeholder = null;
 
 const YEARS = Array.from({length:100},(_,i)=>1926+i);
 const MAX_PER_YEAR = 3;
@@ -147,23 +148,30 @@ let recentYears = [];
 
 const timeline = document.getElementById("timeline");
 const current = document.getElementById("current");
+const heartsEl = document.getElementById("hearts");
+const scoreEl = document.getElementById("score");
 
 function updateHUD(){
-  hearts.innerText = "❤️".repeat(lives);
+  heartsEl.innerText = "❤️".repeat(lives);
   scoreEl.innerText = score;
 }
 
 function pickYear(){
-  return YEARS.filter(y =>
+  const available = YEARS.filter(y =>
     (yearUsage[y]||0) < MAX_PER_YEAR &&
     !recentYears.includes(y)
-  )[Math.floor(Math.random()*YEARS.length)];
+  );
+  if(!available.length){
+    recentYears = [];
+    return YEARS[Math.floor(Math.random()*YEARS.length)];
+  }
+  return available[Math.floor(Math.random()*available.length)];
 }
 
 async function fetchYear(year){
   if(yearPools[year]) return;
 
-  const page = Math.floor(Math.random()*6)+1;
+  const page = Math.floor(Math.random()*5)+1;
   const res = await fetch(
     `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&primary_release_year=${year}&sort_by=popularity.desc&page=${page}`
   );
@@ -175,26 +183,21 @@ async function fetchYear(year){
 }
 
 async function getNextMovie(){
-  let year;
-  do{
-    year = pickYear();
-  }while(!year);
+  for(let i=0;i<50;i++){
+    const year = pickYear();
+    await fetchYear(year);
 
-  await fetchYear(year);
-
-  const pool = yearPools[year];
-  if(!pool.length){
-    yearUsage[year]=MAX_PER_YEAR;
-    return getNextMovie();
+    if(yearPools[year].length){
+      yearUsage[year] = (yearUsage[year]||0)+1;
+      recentYears.push(year);
+      if(recentYears.length>COOLDOWN) recentYears.shift();
+      return yearPools[year].pop();
+    }else{
+      yearUsage[year] = MAX_PER_YEAR;
+    }
   }
-
-  const movie = pool.pop();
-  yearUsage[year] = (yearUsage[year]||0)+1;
-
-  recentYears.push(year);
-  if(recentYears.length>COOLDOWN) recentYears.shift();
-
-  return movie;
+  alert("⚠️ Não foi possível carregar mais filmes.");
+  location.reload();
 }
 
 function createCard(movie,reveal){
@@ -223,6 +226,7 @@ function createCard(movie,reveal){
 
 timeline.addEventListener("dragover",e=>{
   e.preventDefault();
+  if(!placeholder) return;
   const after=[...timeline.children].find(el=>{
     const r=el.getBoundingClientRect();
     return e.clientX<r.left+r.width/2;
@@ -231,6 +235,7 @@ timeline.addEventListener("dragover",e=>{
 });
 
 timeline.addEventListener("drop",()=>{
+  if(!dragged || !placeholder) return;
   timeline.insertBefore(dragged,placeholder);
   dragged.querySelector(".year").classList.add("show");
   placeholder.remove();
