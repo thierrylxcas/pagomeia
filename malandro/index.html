@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>PagoMeia | Terror ou Malandro?</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+:root{
+  --bg:#0e0e0e;
+  --card:#1b1b1b;
+  --roxo:#7b3fe4;
+  --laranja:#ff9800;
+}
+
+body{
+  margin:0;
+  background:linear-gradient(135deg,#1a0033,#120018);
+  font-family:Arial, Helvetica, sans-serif;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+#game{
+  background:var(--card);
+  border-radius:20px;
+  padding:20px;
+  width:340px;
+  text-align:center;
+  box-shadow:0 0 40px rgba(123,63,228,.3);
+}
+
+h1{
+  margin:0 0 10px;
+  color:var(--roxo);
+}
+
+#score{
+  margin-bottom:10px;
+  font-size:14px;
+  opacity:.8;
+}
+
+#imageBox{
+  width:100%;
+  height:420px;
+  overflow:hidden;
+  border-radius:14px;
+  margin-bottom:15px;
+  background:#000;
+}
+
+#imageBox img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  filter:blur(18px);
+  image-rendering:pixelated;
+  transition:filter .5s;
+}
+
+.buttons{
+  display:flex;
+  gap:10px;
+}
+
+button{
+  flex:1;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-size:14px;
+  cursor:pointer;
+  background:var(--roxo);
+  color:#fff;
+  transition:.2s;
+}
+
+button:hover{
+  transform:scale(1.05);
+  background:var(--laranja);
+  color:#000;
+}
+
+#feedback{
+  margin-top:10px;
+  min-height:24px;
+  font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div id="game">
+  <h1>🎬 Terror ou Malandro?</h1>
+  <div id="score">Pontos: 0</div>
+
+  <div id="imageBox">
+    <img id="img" src="">
+  </div>
+
+  <div class="buttons">
+    <button onclick="responder('terror')">🎬 Terror</button>
+    <button onclick="responder('malandro')">🤡 Malandro</button>
+  </div>
+
+  <div id="feedback"></div>
+</div>
+
+<script>
+// ================= CONFIG =================
+const TMDB_API = "69f20920b621de40289df7481ea14b29";
+const TMDB_IMG = "https://image.tmdb.org/t/p/w500";
+
+// Imagens públicas do Sérgio Malandro
+const malandros = [
+  "https://upload.wikimedia.org/wikipedia/commons/4/49/Sergio_Malandro_2015.jpg",
+  "https://upload.wikimedia.org/wikipedia/commons/0/0b/Sergio_Malandro.jpg"
+];
+
+let respostaCorreta = "";
+let blur = 18;
+let intervalo;
+let pontos = 0;
+let inicioTempo = 0;
+
+// ================= JOGO =================
+async function novaRodada(){
+  clearInterval(intervalo);
+  blur = 18;
+  document.getElementById("feedback").innerText = "";
+  document.getElementById("img").style.filter = `blur(${blur}px)`;
+  inicioTempo = Date.now();
+
+  if(Math.random() < 0.5){
+    // FILME DE TERROR
+    respostaCorreta = "terror";
+    const res = await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${TMDB_API}&with_genres=27&language=pt-BR`);
+    const data = await res.json();
+    const filme = data.results[Math.floor(Math.random()*data.results.length)];
+    document.getElementById("img").src = TMDB_IMG + filme.poster_path;
+  }else{
+    // MALANDRO
+    respostaCorreta = "malandro";
+    document.getElementById("img").src = malandros[Math.floor(Math.random()*malandros.length)];
+  }
+
+  intervalo = setInterval(()=>{
+    blur -= 1;
+    if(blur <= 0) clearInterval(intervalo);
+    document.getElementById("img").style.filter = `blur(${blur}px)`;
+  },1000);
+}
+
+function responder(tipo){
+  const tempo = Math.floor((Date.now() - inicioTempo)/1000);
+  let ganho = 0;
+
+  if(tipo === respostaCorreta){
+    if(tempo <= 2) ganho = 10;
+    else if(tempo <= 5) ganho = 5;
+    else ganho = 2;
+
+    pontos += ganho;
+    document.getElementById("feedback").innerText =
+      respostaCorreta === "malandro"
+      ? "😂 RÁÁÁ PEGADINHA DO MALANDRO!"
+      : "😱 Era terror mesmo!";
+  }else{
+    document.getElementById("feedback").innerText =
+      respostaCorreta === "malandro"
+      ? "🤡 ERA O MALANDRO!"
+      : "💀 NÃO ERA TERROR!";
+  }
+
+  document.getElementById("score").innerText = "Pontos: " + pontos;
+  setTimeout(novaRodada,2000);
+}
+
+// INÍCIO
+novaRodada();
+</script>
+
+</body>
+</html>
