@@ -8,139 +8,128 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Press Start 2P', cursive;
-    height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: linear-gradient(135deg, #6C3BAA, #7F00FF);
-    overflow: hidden;
-  }
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Press Start 2P', cursive;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #6C3BAA, #7F00FF);
+  overflow: hidden;
+}
 
-  .menu-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 30px;
-    text-align: center;
-    z-index: 2;
-  }
+.menu-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+  text-align: center;
+  z-index: 2;
+}
 
-  h1 {
-    font-size: 2em;
-    color: #FFED29;
-    text-shadow: 3px 3px #00000080;
-    margin-bottom: 20px;
-  }
+h1 {
+  font-size: 2em;
+  color: #FFED29;
+  text-shadow: 3px 3px #00000080;
+  margin-bottom: 20px;
+}
 
+.menu-button {
+  position: relative;
+  padding: 15px 40px;
+  font-size: 0.8em;
+  color: #ffffff;
+  background-color: #e6b800;
+  border: 3px solid #5D3A8C;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  min-width: 260px;
+  text-align: center;
+  transition: all 0.3s ease;
+  box-shadow: 6px 6px 0px #000;
+  text-shadow:
+    -2px -2px 0 #000,
+     2px -2px 0 #000,
+    -2px  2px 0 #000,
+     2px  2px 0 #000;
+}
+
+.menu-button:hover {
+  transform: translateY(-6px) scale(1.05);
+  box-shadow: 10px 10px 0px #000;
+  background-color: #d4a500;
+}
+
+.menu-button::before {
+  content: "▶ ";
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.menu-button:hover::before {
+  opacity: 1;
+}
+
+/* ===== BOTÃO OFICIAL OSCAR ===== */
+
+.menu-button.oscar {
+  background: linear-gradient(
+    135deg,
+    #7a5a00 0%,
+    #b8860b 20%,
+    #ffd700 40%,
+    #fff1a8 50%,
+    #ffd700 60%,
+    #b8860b 80%,
+    #7a5a00 100%
+  );
+  border: 3px solid #5a3f00;
+  color: #fff;
+}
+
+/* ===== TRANSIÇÃO ===== */
+
+.transition {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle, #000000cc, #000);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #FFED29;
+  font-size: 1em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+  z-index: 10;
+}
+
+.transition.active {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.transition span {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@media (max-width: 600px) {
+  h1 { font-size: 1.5em; }
   .menu-button {
-    position: relative;
-    padding: 15px 40px;
-    font-size: 0.8em;
-    color: #ffffff;
-    background-color: #e6b800;
-    border: 3px solid #5D3A8C;
-    border-radius: 8px;
-    cursor: pointer;
-    text-decoration: none;
-    display: inline-block;
-    min-width: 250px;
-    text-align: center;
-    transition: all 0.3s ease;
-    box-shadow: 6px 6px 0px #000;
-    text-shadow:
-      -2px -2px 0 #000,
-       2px -2px 0 #000,
-      -2px  2px 0 #000,
-       2px  2px 0 #000;
+    font-size: 0.7em;
+    min-width: 200px;
+    padding: 12px 25px;
   }
-
-  .menu-button:hover {
-    transform: translateY(-6px) scale(1.05);
-    box-shadow: 10px 10px 0px #000;
-    background-color: #d4a500;
-  }
-
-  .menu-button::before {
-    content: "▶ ";
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-
-  .menu-button:hover::before {
-    opacity: 1;
-  }
-
-  /* ====== BOTÃO MEIAOSCAR OURO PREMIUM ====== */
-
-  .menu-button.oscar {
-    background: linear-gradient(
-      135deg,
-      #7a5a00 0%,
-      #b8860b 20%,
-      #ffd700 40%,
-      #fff1a8 50%,
-      #ffd700 60%,
-      #b8860b 80%,
-      #7a5a00 100%
-    );
-    border: 3px solid #5a3f00;
-    color: #fff;
-    text-shadow:
-      -2px -2px 0 #000,
-       2px -2px 0 #000,
-      -2px  2px 0 #000,
-       2px  2px 0 #000;
-  }
-
-  .menu-button.oscar:hover {
-    transform: translateY(-6px) scale(1.05);
-    box-shadow: 12px 12px 0px #000;
-    filter: brightness(1.1);
-  }
-
-  /* ========================================== */
-
-  .transition {
-    position: fixed;
-    inset: 0;
-    background: radial-gradient(circle, #000000cc, #000);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: #FFED29;
-    font-size: 1em;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.4s ease;
-    z-index: 10;
-  }
-
-  .transition.active {
-    opacity: 1;
-    pointer-events: all;
-  }
-
-  .transition span {
-    animation: blink 1s infinite;
-  }
-
-  @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
-
-  @media (max-width: 600px) {
-    h1 { font-size: 1.5em; }
-    .menu-button {
-      font-size: 0.7em;
-      min-width: 180px;
-      padding: 12px 25px;
-    }
-  }
+}
 </style>
 </head>
 <body>
@@ -148,11 +137,32 @@
 <div class="menu-container">
   <h1>ESCOLHA UM GAME</h1>
 
-  <a href="./tierlist/index.html" class="menu-button" data-link>📋 TIERLIST</a>
-  <a href="./quiz/quizbr.html" class="menu-button" data-link>🎬 Quiz do BRAZA</a>
-  <a href="./framed/index.html" class="menu-button" data-link>🎬 FRAMED</a>
-  <a href="./wiki/meiatrivia.html" class="menu-button" data-link>🎬 PagoMeia Trivia</a>
-  <a href="./meiaoscar/index.html" class="menu-button oscar" data-link>🏆 MeiaOscar</a>
+  <a href="./tierlist/index.html" class="menu-button" data-link>
+    📋 TIERLIST
+  </a>
+
+  <a href="./quiz/quizbr.html" class="menu-button" data-link>
+    🎬 Quiz do BRAZA
+  </a>
+
+  <a href="./framed/index.html" class="menu-button" data-link>
+    🎬 FRAMED
+  </a>
+
+  <a href="./wiki/meiatrivia.html" class="menu-button" data-link>
+    🎬 PagoMeia Trivia
+  </a>
+
+  <a href="./meiaoscar/index.html" class="menu-button oscar" data-link>
+    🏆 MeiaOscar
+  </a>
+
+  <a href="./indicado-ignorado/indicado-ignorado.html" 
+     class="menu-button oscar" 
+     data-link>
+    🎭 INDICADO ou IGNORADO
+  </a>
+
 </div>
 
 <div class="transition" id="transition">
@@ -160,23 +170,23 @@
 </div>
 
 <script>
-  const links = document.querySelectorAll('[data-link]');
-  const transition = document.getElementById('transition');
+const links = document.querySelectorAll('[data-link]');
+const transition = document.getElementById('transition');
 
-  window.addEventListener('pageshow', () => {
-    transition.classList.remove('active');
-  });
+window.addEventListener('pageshow', () => {
+  transition.classList.remove('active');
+});
 
-  links.forEach(link => {
-    link.addEventListener('click', e => {
-      e.preventDefault();
-      const url = link.getAttribute('href');
-      transition.classList.add('active');
-      setTimeout(() => {
-        window.location.href = url;
-      }, 600);
-    });
+links.forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const url = link.getAttribute('href');
+    transition.classList.add('active');
+    setTimeout(() => {
+      window.location.href = url;
+    }, 600);
   });
+});
 </script>
 
 </body>
