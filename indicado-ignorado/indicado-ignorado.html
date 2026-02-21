@@ -97,9 +97,25 @@ const IMG="https://image.tmdb.org/t/p/w300";
 let score=0;
 let lives=3;
 let currentMovie=null;
+let isOscarMovie=false;
 
-async function fetchMovie(){
-const page=Math.floor(Math.random()*30)+1;
+// 🔥 Lista real de filmes indicados ao Oscar
+const OSCAR_IDS = [
+  497,      // The Green Mile
+  680,      // Pulp Fiction
+  13,       // Forrest Gump
+  122,      // Lord of the Rings Return of the King
+  155,      // The Dark Knight
+  27205,    // Inception
+  550,      // Fight Club
+  238,      // The Godfather
+  424,      // Schindler's List
+  129,      // Spirited Away
+  49026     // The Dark Knight Rises
+];
+
+async function fetchRandomPopular(){
+const page=Math.floor(Math.random()*20)+1;
 const res=await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&sort_by=popularity.desc&page=${page}`);
 const data=await res.json();
 
@@ -112,21 +128,20 @@ movie=data.results[Math.floor(Math.random()*data.results.length)];
 return movie;
 }
 
-async function checkOscar(movieId){
-const res=await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}`);
-const data=await res.json();
+async function fetchMovie(){
+const chooseOscar = Math.random() < 0.5;
 
-const text=(data.overview || "").toLowerCase();
-
-if(
-text.includes("academy award") ||
-text.includes("oscar") ||
-text.includes("nominated for")
-){
-return true;
+if(chooseOscar){
+  const randomId = OSCAR_IDS[Math.floor(Math.random()*OSCAR_IDS.length)];
+  const res = await fetch(`https://api.themoviedb.org/3/movie/${randomId}?api_key=${API_KEY}`);
+  const data = await res.json();
+  isOscarMovie = true;
+  return data;
+}else{
+  const movie = await fetchRandomPopular();
+  isOscarMovie = false;
+  return movie;
 }
-
-return false;
 }
 
 function updateHUD(){
@@ -135,18 +150,17 @@ document.getElementById("lives").innerText="❤".repeat(lives);
 }
 
 async function nextRound(){
-currentMovie=await fetchMovie();
+currentMovie = await fetchMovie();
 
-document.getElementById("poster").innerHTML=
+document.getElementById("poster").innerHTML =
 `<img src="${IMG+currentMovie.poster_path}">`;
 
 document.getElementById("result").innerText="";
 }
 
-async function answer(choice){
-const isOscar=await checkOscar(currentMovie.id);
+function answer(choice){
 
-if(choice===isOscar){
+if(choice===isOscarMovie){
 score++;
 document.getElementById("result").innerText="✅ ACERTOU!";
 }else{
