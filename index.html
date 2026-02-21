@@ -69,8 +69,19 @@
     opacity: 0;
     transition: opacity 0.2s;
   }
+
   .menu-button:hover::before {
     opacity: 1;
+  }
+
+  /* BOTÃO DOURADO OSCAR */
+  .menu-button.oscar {
+    background: linear-gradient(135deg, #C6A75E, #E8D28A);
+    color: #000;
+  }
+
+  .menu-button.oscar:hover {
+    background: linear-gradient(135deg, #b9974d, #d9c16f);
   }
 
   /* OVERLAY DE TRANSIÇÃO */
@@ -122,7 +133,7 @@
   <a href="./quiz/quizbr.html" class="menu-button" data-link>🎬 Quiz do BRAZA</a>
   <a href="./framed/index.html" class="menu-button" data-link>🎬 FRAMED</a>
   <a href="./wiki/meiatrivia.html" class="menu-button" data-link>🎬 PagoMeia Trivia</a>
-  <a href="/meiaoscar/index.html" class="menu-btn gold">🏆 MeiaOscar</a>
+  <a href="./meiaoscar/index.html" class="menu-button oscar" data-link>🏆 MeiaOscar</a>
 </div>
 
 <!-- Overlay -->
@@ -134,7 +145,6 @@
   const links = document.querySelectorAll('[data-link]');
   const transition = document.getElementById('transition');
 
-  /* GARANTE QUE AO VOLTAR PARA O MENU NÃO FIQUE TRAVADO */
   window.addEventListener('pageshow', () => {
     transition.classList.remove('active');
   });
@@ -155,5 +165,3 @@
 
 </body>
 </html>
-
-
