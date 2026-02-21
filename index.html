@@ -74,17 +74,36 @@
     opacity: 1;
   }
 
-  /* BOTÃO DOURADO OSCAR */
+  /* ====== BOTÃO MEIAOSCAR OURO PREMIUM ====== */
+
   .menu-button.oscar {
-    background: linear-gradient(135deg, #C6A75E, #E8D28A);
-    color: #000;
+    background: linear-gradient(
+      135deg,
+      #7a5a00 0%,
+      #b8860b 20%,
+      #ffd700 40%,
+      #fff1a8 50%,
+      #ffd700 60%,
+      #b8860b 80%,
+      #7a5a00 100%
+    );
+    border: 3px solid #5a3f00;
+    color: #fff;
+    text-shadow:
+      -2px -2px 0 #000,
+       2px -2px 0 #000,
+      -2px  2px 0 #000,
+       2px  2px 0 #000;
   }
 
   .menu-button.oscar:hover {
-    background: linear-gradient(135deg, #b9974d, #d9c16f);
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 12px 12px 0px #000;
+    filter: brightness(1.1);
   }
 
-  /* OVERLAY DE TRANSIÇÃO */
+  /* ========================================== */
+
   .transition {
     position: fixed;
     inset: 0;
@@ -136,7 +155,6 @@
   <a href="./meiaoscar/index.html" class="menu-button oscar" data-link>🏆 MeiaOscar</a>
 </div>
 
-<!-- Overlay -->
 <div class="transition" id="transition">
   <span>CARREGANDO...</span>
 </div>
@@ -153,9 +171,7 @@
     link.addEventListener('click', e => {
       e.preventDefault();
       const url = link.getAttribute('href');
-
       transition.classList.add('active');
-
       setTimeout(() => {
         window.location.href = url;
       }, 600);
