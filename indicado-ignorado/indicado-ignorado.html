@@ -4,92 +4,72 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Indicado ou Ignorado - PagoMeia</title>
-
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
 body{
-  margin:0;
-  background:radial-gradient(circle at top,#2a2200,#0f0f0f);
-  font-family:'Press Start 2P',cursive;
-  color:#fff;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  min-height:100vh;
-  text-align:center;
+margin:0;
+background:#111;
+font-family:'Press Start 2P',cursive;
+color:#fff;
+display:flex;
+flex-direction:column;
+align-items:center;
+min-height:100vh;
+text-align:center;
 }
 
 h1{
-  margin-top:20px;
-  color:#FFD700;
-  text-shadow:3px 3px #000;
+margin-top:20px;
+color:#FFD700;
+text-shadow:3px 3px #000;
 }
 
 #hud{
-  margin:15px;
-  display:flex;
-  gap:40px;
-  font-size:0.7em;
-}
-
-#poster{
-  margin-top:20px;
+margin:10px;
+display:flex;
+gap:40px;
 }
 
 #poster img{
-  width:240px;
-  border-radius:14px;
-  box-shadow:0 10px 30px rgba(0,0,0,.6);
+width:250px;
+border-radius:10px;
+margin-top:20px;
 }
 
 .buttons{
-  margin-top:25px;
-  display:flex;
-  gap:30px;
+margin-top:20px;
+display:flex;
+gap:30px;
 }
 
 button{
-  padding:16px 28px;
-  cursor:pointer;
-  font-family:'Press Start 2P';
-  border:none;
-  border-radius:10px;
-  font-size:0.6em;
-  transition:.2s ease;
-}
-
-button:disabled{
-  opacity:.5;
-  cursor:default;
+padding:15px 25px;
+cursor:pointer;
+font-family:'Press Start 2P';
+border:none;
+border-radius:8px;
+font-size:0.7em;
 }
 
 .indicado{
-  background:linear-gradient(135deg,#7a5a00,#ffd700,#7a5a00);
-  color:#000;
-  box-shadow:0 6px 0 #000;
+background:#FFD700;
+color:#000;
 }
-
-.indicado:hover{transform:translateY(-3px)}
 
 .ignorado{
-  background:#333;
-  color:#fff;
-  box-shadow:0 6px 0 #000;
+background:#444;
+color:#fff;
 }
-
-.ignorado:hover{transform:translateY(-3px)}
 
 #result{
-  margin-top:20px;
-  min-height:40px;
-  font-size:0.8em;
+margin-top:15px;
+min-height:30px;
 }
 
-.correct{color:#00ff88}
-.wrong{color:#ff4d4d}
-
-#lives{color:#ff4d4d}
+#lives{
+color:#ff4d4d;
+}
 </style>
 </head>
 <body>
@@ -97,113 +77,90 @@ button:disabled{
 <h1>🏆 INDICADO ou IGNORADO</h1>
 
 <div id="hud">
-  <div>⭐ Pontos: <span id="score">0</span></div>
-  <div>❤️ Vidas: <span id="lives">❤❤❤</span></div>
+<div>Pontos: <span id="score">0</span></div>
+<div>Vidas: <span id="lives">❤❤❤</span></div>
 </div>
 
 <div id="poster"></div>
 
 <div class="buttons">
-  <button class="indicado" onclick="answer(true)">🏆 INDICADO</button>
-  <button class="ignorado" onclick="answer(false)">❌ IGNORADO</button>
+<button class="indicado" onclick="answer(true)">🏆 INDICADO</button>
+<button class="ignorado" onclick="answer(false)">❌ IGNORADO</button>
 </div>
 
 <div id="result"></div>
 
 <script>
 const API_KEY="69f20920b621de40289df7481ea14b29";
-const IMG="https://image.tmdb.org/t/p/w500";
+const IMG="https://image.tmdb.org/t/p/w300";
 
 let score=0;
 let lives=3;
-let difficulty=1;
 let currentMovie=null;
-let usedIds=new Set();
 
 async function fetchMovie(){
-  let movie=null;
+const page=Math.floor(Math.random()*30)+1;
+const res=await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&sort_by=popularity.desc&page=${page}`);
+const data=await res.json();
 
-  while(!movie){
-    const page=Math.floor(Math.random()*40)+1;
-    const res=await fetch(
-      `https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&sort_by=vote_count.desc&vote_count.gte=500&page=${page}`
-    );
-    const data=await res.json();
+let movie=data.results[Math.floor(Math.random()*data.results.length)];
 
-    const candidate=data.results[Math.floor(Math.random()*data.results.length)];
+while(!movie.poster_path){
+movie=data.results[Math.floor(Math.random()*data.results.length)];
+}
 
-    if(
-      candidate &&
-      candidate.poster_path &&
-      !usedIds.has(candidate.id)
-    ){
-      movie=candidate;
-      usedIds.add(candidate.id);
-    }
-  }
-
-  return movie;
+return movie;
 }
 
 async function checkOscar(movieId){
-  const res=await fetch(
-    `https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}`
-  );
-  const data=await res.json();
+const res=await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=${API_KEY}`);
+const data=await res.json();
 
-  // LÓGICA REFINADA + DIFICULDADE PROGRESSIVA
-  const scoreThreshold=7.2 + difficulty*0.15;
-  const voteThreshold=800 + difficulty*100;
+const text=(data.overview || "").toLowerCase();
 
-  return (
-    data.vote_average >= scoreThreshold &&
-    data.vote_count >= voteThreshold
-  );
+if(
+text.includes("academy award") ||
+text.includes("oscar") ||
+text.includes("nominated for")
+){
+return true;
+}
+
+return false;
 }
 
 function updateHUD(){
-  document.getElementById("score").innerText=score;
-  document.getElementById("lives").innerText="❤".repeat(lives);
+document.getElementById("score").innerText=score;
+document.getElementById("lives").innerText="❤".repeat(lives);
 }
 
 async function nextRound(){
-  document.getElementById("result").innerText="";
-  currentMovie=await fetchMovie();
-  document.getElementById("poster").innerHTML=
-    `<img src="${IMG+currentMovie.poster_path}">`;
+currentMovie=await fetchMovie();
+
+document.getElementById("poster").innerHTML=
+`<img src="${IMG+currentMovie.poster_path}">`;
+
+document.getElementById("result").innerText="";
 }
 
 async function answer(choice){
-  document.querySelectorAll("button").forEach(b=>b.disabled=true);
+const isOscar=await checkOscar(currentMovie.id);
 
-  const isOscar=await checkOscar(currentMovie.id);
-  const result=document.getElementById("result");
+if(choice===isOscar){
+score++;
+document.getElementById("result").innerText="✅ ACERTOU!";
+}else{
+lives--;
+document.getElementById("result").innerText="❌ ERROU!";
+if(lives<=0){
+alert("GAME OVER - Pontos: "+score);
+location.reload();
+return;
+}
+}
 
-  if(choice===isOscar){
-    score++;
-    result.innerText="✅ ACERTOU!";
-    result.className="correct";
-  }else{
-    lives--;
-    result.innerText="❌ ERROU!";
-    result.className="wrong";
-  }
-
-  updateHUD();
-
-  if(lives<=0){
-    setTimeout(()=>{
-      alert("💀 GAME OVER\nPontuação: "+score);
-      location.reload();
-    },1300);
-    return;
-  }
-
-  setTimeout(()=>{
-    difficulty+=0.1;
-    document.querySelectorAll("button").forEach(b=>b.disabled=false);
-    nextRound();
-  },1300);
+updateHUD();
+setTimeout(nextRound,1000);
 }
 
 updateHUD();
