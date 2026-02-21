@@ -3,237 +3,180 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MeiaOscar - PagoMeia</title>
+<title>PagoMeia Games</title>
+
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 
 <style>
-body{
-margin:0;
-background:#111;
-font-family:'Press Start 2P',cursive;
-color:#fff;
-display:flex;
-flex-direction:column;
-align-items:center;
-min-height:100vh;
-overflow-x:hidden;
-}
+  body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Press Start 2P', cursive;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: linear-gradient(135deg, #6C3BAA, #7F00FF);
+    overflow: hidden;
+  }
 
-h1{
-margin-top:20px;
-color:#FFD700;
-text-shadow:3px 3px #000;
-}
+  .menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    text-align: center;
+    z-index: 2;
+  }
 
-#hud{
-margin:10px;
-display:flex;
-gap:40px;
-}
+  h1 {
+    font-size: 2em;
+    color: #FFED29;
+    text-shadow: 3px 3px #00000080;
+    margin-bottom: 20px;
+  }
 
-#timeline{
-display:flex;
-flex-wrap:wrap;
-justify-content:center;
-gap:15px;
-max-width:1200px;
-margin:20px;
-}
+  .menu-button {
+    position: relative;
+    padding: 15px 40px;
+    font-size: 0.8em;
+    color: #ffffff;
+    background-color: #e6b800;
+    border: 3px solid #5D3A8C;
+    border-radius: 8px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    min-width: 250px;
+    text-align: center;
+    transition: all 0.3s ease;
+    box-shadow: 6px 6px 0px #000;
+    text-shadow:
+      -2px -2px 0 #000,
+       2px -2px 0 #000,
+      -2px  2px 0 #000,
+       2px  2px 0 #000;
+  }
 
-.movie{
-width:120px;
-cursor:grab;
-text-align:center;
-}
+  .menu-button:hover {
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 10px 10px 0px #000;
+    background-color: #d4a500;
+  }
 
-.movie img{
-width:100%;
-border-radius:8px;
-}
+  .menu-button::before {
+    content: "▶ ";
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
 
-.year{
-font-weight:bold;
-margin-top:5px;
-}
+  .menu-button:hover::before {
+    opacity: 1;
+  }
 
-.year.error{
-color:red;
-}
+  /* ====== BOTÃO MEIAOSCAR OURO PREMIUM ====== */
 
-#lives{
-color:#ff4d4d;
-}
+  .menu-button.oscar {
+    background: linear-gradient(
+      135deg,
+      #7a5a00 0%,
+      #b8860b 20%,
+      #ffd700 40%,
+      #fff1a8 50%,
+      #ffd700 60%,
+      #b8860b 80%,
+      #7a5a00 100%
+    );
+    border: 3px solid #5a3f00;
+    color: #fff;
+    text-shadow:
+      -2px -2px 0 #000,
+       2px -2px 0 #000,
+      -2px  2px 0 #000,
+       2px  2px 0 #000;
+  }
 
-#current{
-margin-top:10px;
-}
+  .menu-button.oscar:hover {
+    transform: translateY(-6px) scale(1.05);
+    box-shadow: 12px 12px 0px #000;
+    filter: brightness(1.1);
+  }
 
-button{
-margin-top:15px;
-padding:10px 20px;
-cursor:pointer;
-font-family:'Press Start 2P';
-background:#FFD700;
-border:none;
-}
+  /* ========================================== */
+
+  .transition {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle, #000000cc, #000);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #FFED29;
+    font-size: 1em;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+    z-index: 10;
+  }
+
+  .transition.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .transition span {
+    animation: blink 1s infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.5em; }
+    .menu-button {
+      font-size: 0.7em;
+      min-width: 180px;
+      padding: 12px 25px;
+    }
+  }
 </style>
 </head>
 <body>
 
-<h1>🏆 MEIAOSCAR - HARD</h1>
+<div class="menu-container">
+  <h1>ESCOLHA UM GAME</h1>
 
-<div id="hud">
-<div>Pontos: <span id="score">0</span></div>
-<div>Vidas: <span id="lives">❤❤❤</span></div>
+  <a href="./tierlist/index.html" class="menu-button" data-link>📋 TIERLIST</a>
+  <a href="./quiz/quizbr.html" class="menu-button" data-link>🎬 Quiz do BRAZA</a>
+  <a href="./framed/index.html" class="menu-button" data-link>🎬 FRAMED</a>
+  <a href="./wiki/meiatrivia.html" class="menu-button" data-link>🎬 PagoMeia Trivia</a>
+  <a href="./meiaoscar/index.html" class="menu-button oscar" data-link>🏆 MeiaOscar</a>
 </div>
 
-<div id="timeline"></div>
-
-<div id="current"></div>
+<div class="transition" id="transition">
+  <span>CARREGANDO...</span>
+</div>
 
 <script>
-const API_KEY="69f20920b621de40289df7481ea14b29";
-const IMG="https://image.tmdb.org/t/p/w200";
+  const links = document.querySelectorAll('[data-link]');
+  const transition = document.getElementById('transition');
 
-let timeline=[];
-let score=0;
-let lives=3;
-let minYearGap=6;
+  window.addEventListener('pageshow', () => {
+    transition.classList.remove('active');
+  });
 
-async function fetchRandomMovie(){
-let valid=false;
-let movie;
-
-while(!valid){
-const page=Math.floor(Math.random()*20)+1;
-const res=await fetch(`https://api.themoviedb.org/3/discover/movie?api_key=${API_KEY}&sort_by=popularity.desc&page=${page}`);
-const data=await res.json();
-movie=data.results[Math.floor(Math.random()*data.results.length)];
-
-if(!movie.release_date) continue;
-
-const year=parseInt(movie.release_date.split("-")[0]);
-
-if(timeline.every(m=>Math.abs(m.year-year)>=minYearGap)){
-valid=true;
-movie.year=year;
-}
-}
-
-return movie;
-}
-
-function renderTimeline(){
-const container=document.getElementById("timeline");
-container.innerHTML="";
-timeline.forEach(m=>{
-const div=document.createElement("div");
-div.className="movie";
-div.innerHTML=`
-<img src="${IMG+m.poster_path}">
-<div class="year ${m.error?'error':''}">${m.year}</div>
-`;
-container.appendChild(div);
-});
-}
-
-function updateLives(){
-document.getElementById("lives").innerText="❤".repeat(lives);
-}
-
-function updateScore(){
-document.getElementById("score").innerText=score;
-}
-
-function checkDifficulty(){
-if(score%5===0 && minYearGap>2){
-minYearGap--;
-}
-}
-
-function gameOver(){
-alert("GAME OVER - Pontos: "+score);
-location.reload();
-}
-
-function insertMovie(movie){
-timeline.push(movie);
-timeline.sort((a,b)=>a.year-b.year);
-renderTimeline();
-}
-
-async function nextRound(){
-const movie=await fetchRandomMovie();
-const currentDiv=document.getElementById("current");
-currentDiv.innerHTML=`
-<div class="movie" draggable="true">
-<img src="${IMG+movie.poster_path}">
-</div>
-`;
-
-const draggable=currentDiv.querySelector(".movie");
-
-draggable.addEventListener("dragstart",e=>{
-e.dataTransfer.setData("year",movie.year);
-e.dataTransfer.setData("poster",movie.poster_path);
-});
-}
-
-const timelineDiv=document.getElementById("timeline");
-
-timelineDiv.addEventListener("dragover",e=>{
-e.preventDefault();
-});
-
-timelineDiv.addEventListener("drop",e=>{
-e.preventDefault();
-
-const year=parseInt(e.dataTransfer.getData("year"));
-const poster=e.dataTransfer.getData("poster");
-
-let correctIndex=timeline.findIndex(m=>m.year>year);
-if(correctIndex===-1) correctIndex=timeline.length;
-
-const dropX=e.clientX;
-const dropY=e.clientY;
-
-const elements=[...timelineDiv.children];
-let visualIndex=elements.findIndex(el=>{
-const rect=el.getBoundingClientRect();
-return dropY<rect.bottom && dropX<rect.left+rect.width/2;
-});
-if(visualIndex===-1) visualIndex=timeline.length;
-
-const correct=(visualIndex===correctIndex);
-
-const movie={year,poster_path:poster};
-
-if(correct){
-score++;
-checkDifficulty();
-}else{
-movie.error=true;
-lives--;
-updateLives();
-if(lives<=0){
-insertMovie(movie);
-gameOver();
-return;
-}
-}
-
-timeline.splice(correctIndex,0,movie);
-renderTimeline();
-updateScore();
-nextRound();
-});
-
-(async()=>{
-const first=await fetchRandomMovie();
-timeline.push(first);
-renderTimeline();
-nextRound();
-})();
+  links.forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const url = link.getAttribute('href');
+      transition.classList.add('active');
+      setTimeout(() => {
+        window.location.href = url;
+      }, 600);
+    });
+  });
 </script>
 
 </body>
