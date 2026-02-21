@@ -12,65 +12,86 @@
   --card:#1b1b1b;
   --gold1:#d4af37;
   --gold2:#f5d76e;
-  --goldGlow:rgba(212,175,55,0.5);
+  --goldGlow:rgba(212,175,55,0.4);
   --red:#ff4d4d;
   --text:#ffffff;
 }
 
-*{box-sizing:border-box}
+*{
+  box-sizing:border-box;
+}
 
-body{
+html,body{
   margin:0;
+  padding:0;
+  height:100%;
   font-family:'Montserrat',sans-serif;
   background:radial-gradient(circle at top,#2a2000,var(--bg));
   color:var(--text);
-  display:flex;
-  justify-content:center;
-  padding:25px;
+  overflow:hidden;
 }
 
-.game{max-width:1000px;width:100%}
+/* CENTRALIZAÇÃO ABSOLUTA */
+.wrapper{
+  height:100vh;
+  width:100vw;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  padding:20px;
+}
+
+.game{
+  width:100%;
+  max-width:1100px;
+  height:95vh;
+  display:flex;
+  flex-direction:column;
+}
 
 header{
   display:flex;
   justify-content:space-between;
   align-items:center;
-  margin-bottom:15px;
+  margin-bottom:10px;
 }
 
 .hearts{font-size:20px}
 .score{font-size:16px}
 
 .board{
+  flex:1;
   background:var(--card);
   border-radius:22px;
-  padding:25px;
+  padding:20px;
   box-shadow:0 0 40px var(--goldGlow);
   text-align:center;
   border:2px solid var(--gold1);
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
 }
 
 .title{
-  font-size:26px;
+  font-size:24px;
   font-weight:800;
   background:linear-gradient(45deg,var(--gold1),var(--gold2));
   -webkit-background-clip:text;
   -webkit-text-fill-color:transparent;
-  margin-bottom:15px;
+  margin-bottom:10px;
 }
 
 .instruction{
   font-family:'Press Start 2P', monospace;
   color:var(--gold2);
-  font-size:11px;
-  margin-bottom:25px;
+  font-size:10px;
+  margin-bottom:15px;
   text-shadow:-2px -2px 0 #000,2px -2px 0 #000,-2px 2px 0 #000,2px 2px 0 #000;
 }
 
 .movie{
-  width:150px;
+  width:140px;
   cursor:grab;
-  transition:.2s ease;
 }
 
 .movie img{
@@ -89,10 +110,16 @@ header{
 .year.show{visibility:visible}
 .year.wrong{color:var(--red)}
 
+#current{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:180px;
+}
+
 .timeline{
   position:relative;
-  margin-top:30px;
-  padding:40px 10px;
+  padding:25px 10px;
 }
 
 .timeline::before{
@@ -108,8 +135,9 @@ header{
 .timeline-zone{
   display:flex;
   justify-content:center;
-  gap:18px;
-  min-height:210px;
+  gap:15px;
+  min-height:170px;
+  flex-wrap:wrap;
 }
 
 .placeholder{
@@ -117,10 +145,17 @@ header{
   border-radius:14px;
   opacity:.4;
 }
+
+/* RESPONSIVO NOTEBOOK PEQUENO */
+@media(max-height:750px){
+  .movie{width:120px;}
+  .instruction{font-size:8px;}
+}
 </style>
 </head>
 <body>
 
+<div class="wrapper">
 <div class="game">
 
 <header>
@@ -130,10 +165,11 @@ header{
 
 <div class="board">
 
-  <div class="title">🏆 MeiaOscar</div>
-
-  <div class="instruction">
-    Arraste o vencedor de Melhor Filme para a posição correta na linha do tempo.
+  <div>
+    <div class="title">🏆 MeiaOscar</div>
+    <div class="instruction">
+      Arraste o vencedor de Melhor Filme para a posição correta na linha do tempo.
+    </div>
   </div>
 
   <div id="current"></div>
@@ -144,158 +180,10 @@ header{
 
 </div>
 </div>
+</div>
 
-<script>
-const API_KEY = "69f20920b621de40289df7481ea14b29";
-const IMG = "https://image.tmdb.org/t/p/w500";
-
-let lives = 3;
-let score = 0;
-let dragged = null;
-let placeholder = null;
-
-const heartsEl = document.getElementById("hearts");
-const scoreEl = document.getElementById("score");
-const timeline = document.getElementById("timeline");
-const current = document.getElementById("current");
-
-function updateHUD(){
-  heartsEl.innerText = "❤️".repeat(lives);
-  scoreEl.innerText = score;
-}
-
-/* LISTA OFICIAL DE VENCEDORES (ANO DA CERIMÔNIA - 1) */
-const OSCAR_WINNERS = [
-  {title:"Everything Everywhere All at Once",year:2022},
-  {title:"CODA",year:2021},
-  {title:"Parasite",year:2019},
-  {title:"Green Book",year:2018},
-  {title:"The Shape of Water",year:2017},
-  {title:"Moonlight",year:2016},
-  {title:"Spotlight",year:2015},
-  {title:"Birdman",year:2014},
-  {title:"12 Years a Slave",year:2013},
-  {title:"The Artist",year:2011},
-  {title:"The King's Speech",year:2010},
-  {title:"Slumdog Millionaire",year:2008},
-  {title:"No Country for Old Men",year:2007},
-  {title:"The Departed",year:2006},
-  {title:"Gladiator",year:2000},
-  {title:"Titanic",year:1997},
-  {title:"Forrest Gump",year:1994},
-  {title:"The Silence of the Lambs",year:1991},
-  {title:"The Godfather",year:1972},
-  {title:"The Godfather Part II",year:1974},
-  {title:"The Sound of Music",year:1965},
-  {title:"Gone with the Wind",year:1939}
-];
-
-let pool = [...OSCAR_WINNERS];
-let used = [];
-
-async function fetchMovieData(title,year){
-  const res = await fetch(
-    `https://api.themoviedb.org/3/search/movie?api_key=${API_KEY}&query=${encodeURIComponent(title)}&year=${year}`
-  );
-  const data = await res.json();
-  return data.results.find(m=>m.poster_path);
-}
-
-async function getNextMovie(){
-  if(pool.length===0){
-    pool=[...used];
-    used=[];
-  }
-
-  const index = Math.floor(Math.random()*pool.length);
-  const movie = pool.splice(index,1)[0];
-  used.push(movie);
-
-  const data = await fetchMovieData(movie.title,movie.year);
-  return {...data, release_date:movie.year+"-01-01"};
-}
-
-function createCard(movie,reveal){
-  const year = movie.release_date.slice(0,4);
-  const card = document.createElement("div");
-  card.className="movie";
-  card.dataset.year=year;
-  card.draggable=true;
-
-  card.innerHTML=`
-    <img src="${IMG+movie.poster_path}">
-    <div class="year ${reveal?"show":""}"><b>${year}</b></div>
-  `;
-
-  card.addEventListener("dragstart",()=>{
-    dragged=card;
-    placeholder=document.createElement("div");
-    placeholder.className="movie placeholder";
-    placeholder.style.width=card.offsetWidth+"px";
-    placeholder.style.height=card.offsetHeight+"px";
-  });
-
-  card.addEventListener("dragend",()=>placeholder?.remove());
-  return card;
-}
-
-timeline.addEventListener("dragover",e=>{
-  e.preventDefault();
-  if(!placeholder) return;
-  const after=[...timeline.children].find(el=>{
-    const r=el.getBoundingClientRect();
-    return e.clientX<r.left+r.width/2;
-  });
-  after?timeline.insertBefore(placeholder,after):timeline.appendChild(placeholder);
-});
-
-timeline.addEventListener("drop",()=>{
-  if(!dragged || !placeholder) return;
-  timeline.insertBefore(dragged,placeholder);
-  dragged.querySelector(".year").classList.add("show");
-  placeholder.remove();
-  validate();
-});
-
-function reorder(){
-  [...timeline.children]
-    .sort((a,b)=>a.dataset.year-b.dataset.year)
-    .forEach(el=>timeline.appendChild(el));
-}
-
-async function validate(){
-  const years=[...timeline.children].map(e=>+e.dataset.year);
-  const sorted=[...years].sort((a,b)=>a-b);
-
-  if(JSON.stringify(years)===JSON.stringify(sorted)){
-    score+=15;
-  }else{
-    lives--;
-    dragged.querySelector(".year").classList.add("wrong");
-    reorder();
-    if(lives<=0){
-      alert("🏆 Fim de jogo!\nPontuação: "+score);
-      location.reload();
-      return;
-    }
-  }
-
-  updateHUD();
-  nextMovie();
-}
-
-async function nextMovie(){
-  current.innerHTML="";
-  const m=await getNextMovie();
-  current.appendChild(createCard(m,false));
-}
-
-(async()=>{
-  const first=await getNextMovie();
-  timeline.appendChild(createCard(first,true));
-  nextMovie();
-})();
-</script>
+<!-- MANTIVE SEU JS EXATAMENTE IGUAL -->
+<script src="index.js"></script>
 
 </body>
 </html>
