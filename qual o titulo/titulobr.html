@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qual é a Tradução? - PagoMeia</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+<style>
+body{
+margin:0;
+background:#111;
+font-family:'Press Start 2P',cursive;
+color:#fff;
+display:flex;
+flex-direction:column;
+align-items:center;
+min-height:100vh;
+text-align:center;
+}
+
+h1{
+margin-top:20px;
+color:#00e6ff;
+text-shadow:3px 3px #000;
+}
+
+#hud{
+margin:15px;
+display:flex;
+gap:40px;
+}
+
+#poster img{
+width:220px;
+border-radius:10px;
+margin-top:20px;
+}
+
+#original{
+margin-top:15px;
+font-size:0.8em;
+color:#FFD700;
+}
+
+.options{
+margin-top:25px;
+display:flex;
+flex-direction:column;
+gap:15px;
+width:80%;
+max-width:500px;
+}
+
+button{
+padding:12px;
+cursor:pointer;
+font-family:'Press Start 2P';
+border:none;
+border-radius:8px;
+font-size:0.65em;
+}
+
+button:hover{
+transform:scale(1.03);
+}
+
+.correct{
+background:#00cc66;
+}
+
+.wrong{
+background:#cc3333;
+}
+
+.option-btn{
+background:#333;
+color:#fff;
+}
+
+#result{
+margin-top:20px;
+min-height:30px;
+}
+
+#lives{
+color:#ff4d4d;
+}
+</style>
+</head>
+<body>
+
+<h1>🎬 QUAL É A TRADUÇÃO?</h1>
+
+<div id="hud">
+<div>Pontos: <span id="score">0</span></div>
+<div>Vidas: <span id="lives">❤❤❤</span></div>
+</div>
+
+<div id="poster"></div>
+<div id="original"></div>
+
+<div class="options" id="options"></div>
+
+<div id="result"></div>
+
+<script>
+const API_KEY="69f20920b621de40289df7481ea14b29";
+const IMG="https://image.tmdb.org/t/p/w300";
+
+let score=0;
+let lives=3;
+let currentMovie=null;
+let correctAnswer="";
+let usedMovies=new Set();
+
+// 🎬 Filmes reais que participaram do Oscar
+const OSCAR_IDS=[
+13,424,122,680,278,238,155,240,497,14,
+1891,857,98,105,311,73,629,597,289,550,
+27205,49026,637,85,807,157336,19404
+];
+
+function shuffle(array){
+return array.sort(()=>Math.random()-0.5);
+}
+
+function generateFakeTitles(original){
+
+let fake1="A "+original.split(" ")[0]+" Perdida";
+let fake2="Sombras de "+original.split(" ")[0];
+
+if(original.length<10){
+fake1="O Destino de "+original;
+fake2="Além de "+original;
+}
+
+return [fake1,fake2];
+}
+
+async function fetchOscarMovie(){
+
+let id;
+
+while(true){
+id=OSCAR_IDS[Math.floor(Math.random()*OSCAR_IDS.length)];
+if(!usedMovies.has(id)){
+usedMovies.add(id);
+break;
+}
+}
+
+const res=await fetch(`https://api.themoviedb.org/3/movie/${id}?api_key=${API_KEY}&language=pt-BR`);
+return await res.json();
+}
+
+function updateHUD(){
+document.getElementById("score").innerText=score;
+document.getElementById("lives").innerText="❤".repeat(lives);
+}
+
+async function nextRound(){
+
+currentMovie=await fetchOscarMovie();
+
+document.getElementById("poster").innerHTML=
+`<img src="${IMG+currentMovie.poster_path}">`;
+
+document.getElementById("original").innerText=
+`Título Original: ${currentMovie.original_title}`;
+
+correctAnswer=currentMovie.title;
+
+const fakes=generateFakeTitles(currentMovie.original_title);
+
+let options=[correctAnswer,...fakes];
+options=shuffle(options);
+
+const container=document.getElementById("options");
+container.innerHTML="";
+
+options.forEach(option=>{
+const btn=document.createElement("button");
+btn.className="option-btn";
+btn.innerText=option;
+btn.onclick=()=>answer(option,btn);
+container.appendChild(btn);
+});
+
+document.getElementById("result").innerText="";
+}
+
+function answer(choice,btn){
+
+const buttons=document.querySelectorAll(".option-btn");
+buttons.forEach(b=>b.disabled=true);
+
+if(choice===correctAnswer){
+score++;
+btn.classList.add("correct");
+document.getElementById("result").innerText="✅ ACERTOU!";
+}else{
+lives--;
+btn.classList.add("wrong");
+document.getElementById("result").innerText="❌ ERROU!";
+if(lives<=0){
+alert("GAME OVER - Pontos: "+score);
+location.reload();
+return;
+}
+}
+
+updateHUD();
+setTimeout(nextRound,1500);
+}
+
+updateHUD();
+nextRound();
+</script>
+
+</body>
+</html>
