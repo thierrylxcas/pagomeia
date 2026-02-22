@@ -1,323 +1,216 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bolão Oscar 2026 - Tierlist</title>
+<title>Bolão Oscar 2026 | PagoMeia</title>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <style>
 body{
-    margin:0;
-    font-family: Arial, Helvetica, sans-serif;
-    background: radial-gradient(circle at top, #1a1a1a, #000);
-    color:#fff;
+  margin:0;
+  background: radial-gradient(circle at top,#1a1a1a,#000);
+  color:#fff;
+  font-family:'Press Start 2P',monospace;
 }
 
 header{
-    text-align:center;
-    padding:30px 10px;
-    background: linear-gradient(90deg,#d4af37,#f5d27a,#d4af37);
-    color:#000;
-    font-weight:bold;
-    font-size:28px;
-    letter-spacing:2px;
+  text-align:center;
+  background: linear-gradient(90deg,#d4af37,#f5d27a,#d4af37);
+  color:#000;
+  padding:25px;
+  font-size:26px;
+  font-weight:bold;
 }
 
 .category{
-    margin:30px;
-    padding:20px;
-    background:#111;
-    border:2px solid #d4af37;
-    border-radius:15px;
+  margin:20px;
+  border:2px solid #d4af37;
+  border-radius:12px;
+  padding:12px;
+  background:#111;
 }
 
 .category h2{
-    margin-top:0;
-    color:#f5d27a;
-    text-align:center;
+  color:#f5d27a;
+  text-align:center;
+  margin:0 0 10px 0;
 }
 
-.tier{
-    min-height:60px;
-    padding:10px;
-    margin-bottom:10px;
-    border-radius:10px;
+.tiers{
+  display:flex;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:10px;
 }
 
 .winner{
-    background:linear-gradient(90deg,#d4af37,#f5d27a);
-    color:#000;
-    font-weight:bold;
+  flex:1;
+  padding:10px;
+  border:2px dashed #ffd700;
+  min-height:50px;
+  cursor:pointer;
+  background:rgba(255,215,0,0.1);
+  text-align:center;
+  font-size:0.7em;
 }
 
-.runner{
-    background:#333;
+.nominees{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  justify-content:center;
 }
 
 .nominee{
-    padding:8px 12px;
-    margin:5px;
-    background:#222;
-    border:1px solid #555;
-    border-radius:8px;
-    cursor:grab;
-    display:inline-block;
+  background:#222;
+  padding:8px 12px;
+  border-radius:8px;
+  cursor:pointer;
+  font-size:0.7em;
+  border:1px solid #555;
+  text-align:center;
 }
 
 .nominee:hover{
-    background:#444;
+  background:#333;
 }
 
 button{
-    display:block;
-    margin:40px auto;
-    padding:15px 30px;
-    font-size:18px;
-    background:#d4af37;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
+  margin:30px auto;
+  display:block;
+  padding:14px 28px;
+  background:#d4af37;
+  border:none;
+  font-size:18px;
+  border-radius:10px;
+  cursor:pointer;
+  font-weight:bold;
 }
 
 button:hover{
-    background:#f5d27a;
+  background:#f5d27a;
 }
 </style>
 </head>
+
 <body>
 
 <header>
-BOLÃO OSCAR 2026 🏆<br>
-Monte sua Tierlist e tire o print!
+BOLÃO OSCAR 2026 🏆  
+Escolha quem VOCÊ acha que vai ganhar!
 </header>
 
-<div id="content">
+<div id="tier-content"></div>
 
-<!-- MODELO DE CATEGORIA -->
-<script>
-function createCategory(title, nominees){
-    const container = document.createElement("div");
-    container.className = "category";
-
-    container.innerHTML = `
-        <h2>${title}</h2>
-        <div class="tier winner" ondrop="drop(event)" ondragover="allowDrop(event)">
-            🏆 Vencedor
-        </div>
-        <div class="tier runner" ondrop="drop(event)" ondragover="allowDrop(event)">
-            🎬 Outros Indicados
-        </div>
-        <div>
-            ${nominees.map(n => `<div class="nominee" draggable="true" ondragstart="drag(event)">${n}</div>`).join("")}
-        </div>
-    `;
-
-    document.getElementById("content").appendChild(container);
-}
-</script>
+<button onclick="takeScreenshot()">
+📸 TIRAR SCREENSHOT
+</button>
 
 <script>
-// =====================
-// INSIRA A LISTA OFICIAL AQUI
-// (Você pode editar depois se quiser ajustar)
-// =====================
+const tierData={
 
-createCategory("Melhor Filme", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5",
-"Filme 6",
-"Filme 7",
-"Filme 8",
-"Filme 9",
-"Filme 10"
-]);
+  "Melhor Filme":[
+    "Bugonia","F1","Frankenstein","Hamnet","Marty Supreme",
+    "One Battle After Another","The Secret Agent","Sentimental Value",
+    "Sinners","Train Dreams"
+  ],
 
-createCategory("Melhor Ator", [
-"Ator 1",
-"Ator 2",
-"Ator 3",
-"Ator 4",
-"Ator 5"
-]);
+  "Melhor Ator":[
+    "Timothée Chalamet – Marty Supreme",
+    "Leonardo DiCaprio – One Battle After Another",
+    "Ethan Hawke – Blue Moon",
+    "Michael B. Jordan – Sinners",
+    "Wagner Moura – The Secret Agent"
+  ],
 
-createCategory("Melhor Atriz", [
-"Atriz 1",
-"Atriz 2",
-"Atriz 3",
-"Atriz 4",
-"Atriz 5"
-]);
+  "Melhor Atriz":[
+    "Jessie Buckley – Hamnet",
+    "Rose Byrne – If I Had Legs I'd Kick You",
+    "Kate Hudson – Song Sung Blue",
+    "Renate Reinsve – Sentimental Value",
+    "Emma Stone – Bugonia"
+  ],
 
-createCategory("Melhor Ator Coadjuvante", [
-"Coadjuvante 1",
-"Coadjuvante 2",
-"Coadjuvante 3",
-"Coadjuvante 4",
-"Coadjuvante 5"
-]);
+  "Melhor Ator Coadjuvante":[
+    "Benicio Del Toro – One Battle After Another",
+    "Jacob Elordi – Frankenstein",
+    "Delroy Lindo – Sinners",
+    "Sean Penn – One Battle After Another",
+    "Stellan Skarsgård – Sentimental Value"
+  ],
 
-createCategory("Melhor Atriz Coadjuvante", [
-"Coadjuvante 1",
-"Coadjuvante 2",
-"Coadjuvante 3",
-"Coadjuvante 4",
-"Coadjuvante 5"
-]);
+  "Melhor Atriz Coadjuvante":[
+    "Elle Fanning – Sentimental Value",
+    "Inga Ibsdotter Lilleaas – Sentimental Value",
+    "Amy Madigan – Weapons",
+    "Wunmi Mosaku – Sinners",
+    "Teyana Taylor – One Battle After Another"
+  ],
 
-createCategory("Melhor Direção", [
-"Diretor 1",
-"Diretor 2",
-"Diretor 3",
-"Diretor 4",
-"Diretor 5"
-]);
+  "Melhor Direção":[
+    "Paul Thomas Anderson – One Battle After Another",
+    "Ryan Coogler – Sinners",
+    "Chloé Zhao – Hamnet",
+    "Joachim Trier – Sentimental Value",
+    "Josh Safdie – Marty Supreme"
+  ],
 
-createCategory("Melhor Roteiro Original", [
-"Roteiro 1",
-"Roteiro 2",
-"Roteiro 3",
-"Roteiro 4",
-"Roteiro 5"
-]);
+  "Melhor Roteiro Original":[
+    "Blue Moon","It Was Just an Accident","Marty Supreme",
+    "Sentimental Value","Sinners"
+  ],
 
-createCategory("Melhor Roteiro Adaptado", [
-"Roteiro 1",
-"Roteiro 2",
-"Roteiro 3",
-"Roteiro 4",
-"Roteiro 5"
-]);
+  "Melhor Roteiro Adaptado":[
+    "Bugonia","Frankenstein","Hamnet",
+    "One Battle After Another","Train Dreams"
+  ],
 
-createCategory("Melhor Animação", [
-"Animação 1",
-"Animação 2",
-"Animação 3",
-"Animação 4",
-"Animação 5"
-]);
+  "Melhor Trilha Sonora":[
+    "Bugonia","Frankenstein","Hamnet",
+    "One Battle After Another","Sinners"
+  ]
+};
 
-createCategory("Melhor Filme Internacional", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
+const container=document.getElementById("tier-content");
 
-createCategory("Melhor Fotografia", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
+Object.keys(tierData).forEach(category=>{
+  const catDiv=document.createElement("div");
+  catDiv.className="category";
+  catDiv.innerHTML=`
+    <h2>${category}</h2>
+    <div class="tiers">
+      <div class="winner" data-cat="${category}" onclick="selectWinner(event)">
+        🏆 Seu Vencedor
+      </div>
+    </div>
+    <div class="nominees" id="nom-${category}">
+    </div>
+  `;
+  container.appendChild(catDiv);
 
-createCategory("Melhor Trilha Sonora", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
+  tierData[category].forEach(item=>{
+    const btn=document.createElement("div");
+    btn.className="nominee";
+    btn.innerText=item;
+    btn.onclick=e=>pickNominee(e,item,category);
+    document.getElementById("nom-"+category).appendChild(btn);
+  });
+});
 
-createCategory("Melhor Canção Original", [
-"Canção 1",
-"Canção 2",
-"Canção 3",
-"Canção 4",
-"Canção 5"
-]);
-
-createCategory("Melhor Design de Produção", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
-
-createCategory("Melhor Figurino", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
-
-createCategory("Melhor Maquiagem e Penteado", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
-
-createCategory("Melhor Som", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
-
-createCategory("Melhor Efeitos Visuais", [
-"Filme 1",
-"Filme 2",
-"Filme 3",
-"Filme 4",
-"Filme 5"
-]);
-
-createCategory("Melhor Documentário", [
-"Doc 1",
-"Doc 2",
-"Doc 3",
-"Doc 4",
-"Doc 5"
-]);
-
-createCategory("Melhor Curta-Metragem", [
-"Curta 1",
-"Curta 2",
-"Curta 3",
-"Curta 4",
-"Curta 5"
-]);
-</script>
-
-</div>
-
-<button onclick="tirarPrint()">📸 Tirar Screenshot</button>
-
-<script>
-function allowDrop(ev){
-    ev.preventDefault();
+function pickNominee(e,item,category){
+  const winnerBox=document.querySelector(`.winner[data-cat="${category}"]`);
+  winnerBox.innerText="🏆 " + item;
 }
 
-function drag(ev){
-    ev.dataTransfer.setData("text", ev.target.outerHTML);
-    ev.target.remove();
-}
-
-function drop(ev){
-    ev.preventDefault();
-    var data = ev.dataTransfer.getData("text");
-    ev.target.innerHTML += data;
-}
-
-function tirarPrint(){
-    html2canvas(document.body).then(canvas=>{
-        const link = document.createElement("a");
-        link.download = "meu-bolao-oscar-2026.png";
-        link.href = canvas.toDataURL();
-        link.click();
-    });
+function takeScreenshot(){
+  html2canvas(document.body).then(canvas=>{
+    const link=document.createElement("a");
+    link.download="bolao-oscar-2026.png";
+    link.href=canvas.toDataURL();
+    link.click();
+  });
 }
 </script>
 
