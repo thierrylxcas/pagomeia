@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caminho da Copa</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; }
+
+  :root {
+    --green-dark: #1a3a1a;
+    --green-mid: #2d5a1b;
+    --green-field: #3d7a25;
+    --green-light: #5aa832;
+    --yellow-gold: #f5c518;
+    --yellow-light: #ffe066;
+    --red-danger: #cc2200;
+    --red-flash: #ff4422;
+    --blue-sky: #4488cc;
+    --blue-light: #88bbee;
+    --brown-path: #8b6914;
+    --brown-light: #c49a3c;
+    --white: #f0eed8;
+    --black: #0a0a0a;
+    --gray-dark: #222;
+    --gray-mid: #555;
+    --pixel: 4px;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    background: #0a0a0a;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+
+  #gameContainer {
+    width: 1280px; height: 720px;
+    position: relative;
+    overflow: hidden;
+    font-family: 'Press Start 2P', monospace;
+    image-rendering: pixelated;
+  }
+
+  canvas {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    image-rendering: pixelated;
+  }
+
+  /* ── UI OVERLAY ── */
+  #ui {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  /* HUD */
+  #hud {
+    position: absolute; top: 12px; left: 16px; right: 16px;
+    display: flex; align-items: center; gap: 20px;
+    pointer-events: none;
+  }
+  .hud-box {
+    background: rgba(10,10,10,0.85);
+    border: 3px solid var(--yellow-gold);
+    padding: 8px 14px;
+    font-size: 9px; color: var(--white);
+    display: flex; align-items: center; gap: 8px;
+    image-rendering: pixelated;
+  }
+  .health-bar-wrap {
+    width: 120px; height: 12px;
+    background: #333;
+    border: 2px solid #666;
+    overflow: hidden;
+  }
+  #healthBar {
+    height: 100%;
+    background: linear-gradient(to right, #22cc44, #44ee66);
+    transition: width 0.4s;
+  }
+  #progressWrap {
+    flex: 1;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .progress-track {
+    flex: 1; height: 12px;
+    background: #333; border: 2px solid #666;
+    overflow: hidden; position: relative;
+  }
+  #progressBar {
+    height: 100%;
+    background: linear-gradient(to right, var(--yellow-gold), var(--yellow-light));
+    transition: width 0.6s;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    pointer-events: all;
+    z-index: 20;
+  }
+  .screen.hidden { display: none; }
+
+  /* Title Screen */
+  #titleScreen {
+    background: #0d1a0d;
+  }
+  .title-pixel-sky {
+    position: absolute; top: 0; left: 0; width: 100%; height: 35%;
+    background: linear-gradient(180deg, #1a2d4a 0%, #2d5a7a 60%, #1a3a2a 100%);
+  }
+  .title-pixel-ground {
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 40%;
+    background: var(--green-mid);
+    border-top: 4px solid var(--green-light);
+  }
+  .title-stars { position: absolute; top: 20px; left: 0; width: 100%; }
+  .star { position: absolute; width: 4px; height: 4px; background: var(--white); }
+
+  .title-content { position: relative; z-index: 5; text-align: center; }
+  .title-emoji { font-size: 64px; display: block; margin-bottom: 12px; animation: bounce 1.2s infinite; }
+  .title-main {
+    font-size: 36px; color: var(--yellow-gold);
+    text-shadow: 4px 4px 0 #7a5500, -2px -2px 0 #7a5500, 2px -2px 0 #7a5500, -2px 2px 0 #7a5500;
+    letter-spacing: 4px; line-height: 1.4;
+  }
+  .title-sub { font-size: 14px; color: var(--yellow-light); margin-top: 8px; letter-spacing: 2px; }
+  .title-flavor {
+    margin-top: 28px;
+    font-size: 9px; color: #aaddaa; line-height: 2.2;
+    max-width: 560px; text-align: center;
+  }
+  .pixel-btn {
+    margin-top: 32px;
+    padding: 16px 40px;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 14px;
+    background: var(--yellow-gold);
+    color: var(--black);
+    border: none; cursor: pointer;
+    box-shadow: 4px 4px 0 #7a5500, 6px 6px 0 #3a2800;
+    transition: transform 0.1s, box-shadow 0.1s;
+    pointer-events: all;
+  }
+  .pixel-btn:hover { transform: translate(-2px,-2px); box-shadow: 6px 6px 0 #7a5500, 8px 8px 0 #3a2800; }
+  .pixel-btn:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 #7a5500; }
+  .pixel-btn.red { background: var(--red-danger); color: var(--white); box-shadow: 4px 4px 0 #660000, 6px 6px 0 #2a0000; }
+  .pixel-btn.red:hover { box-shadow: 6px 6px 0 #660000, 8px 8px 0 #2a0000; }
+  .pixel-btn.green { background: #22aa44; color: var(--white); box-shadow: 4px 4px 0 #115522, 6px 6px 0 #082211; }
+  .pixel-btn.green:hover { box-shadow: 6px 6px 0 #115522, 8px 8px 0 #082211; }
+
+  /* Event Modal */
+  #eventModal {
+    background: rgba(0,0,0,0.82);
+  }
+  .modal-box {
+    background: var(--green-dark);
+    border: 4px solid var(--yellow-gold);
+    box-shadow: 8px 8px 0 #7a5500, 0 0 40px rgba(245,197,24,0.3);
+    padding: 40px 48px;
+    max-width: 640px; width: 90%;
+    text-align: center;
+  }
+  .event-icon { font-size: 72px; display: block; margin-bottom: 16px; animation: pulse 1.5s infinite; }
+  .event-title { font-size: 16px; color: var(--yellow-gold); margin-bottom: 20px; letter-spacing: 2px; }
+  .event-text { font-size: 10px; color: var(--white); line-height: 2.4; margin-bottom: 32px; }
+  .btn-row { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+
+  /* Mystery box */
+  .mystery-box {
+    background: var(--green-dark);
+    border: 4px solid var(--yellow-gold);
+    box-shadow: 8px 8px 0 #7a5500;
+    padding: 48px 64px;
+    text-align: center;
+  }
+  .mystery-icon { font-size: 80px; display: block; margin-bottom: 20px; animation: spin 2s linear infinite; }
+  .mystery-text { font-size: 12px; color: var(--yellow-light); margin-bottom: 32px; }
+
+  /* Result */
+  #resultModal { background: rgba(0,0,0,0.85); }
+  .result-box {
+    background: var(--green-dark);
+    border: 4px solid var(--yellow-gold);
+    box-shadow: 8px 8px 0 #7a5500;
+    padding: 48px 64px; text-align: center;
+    max-width: 560px;
+  }
+  .result-icon { font-size: 64px; display: block; margin-bottom: 20px; }
+  .result-text { font-size: 11px; color: var(--white); line-height: 2.4; margin-bottom: 32px; }
+
+  /* Injury / Game Over */
+  #injuryScreen { background: #110000; }
+  .injury-flicker { animation: flicker 0.15s infinite; }
+  .injury-icon { font-size: 80px; margin-bottom: 16px; }
+  .injury-title { font-size: 28px; color: var(--red-flash); text-shadow: 4px 4px 0 #660000; margin-bottom: 12px; }
+  .injury-text { font-size: 11px; color: #ffaaaa; line-height: 2.4; margin-bottom: 32px; max-width: 500px; text-align: center; }
+
+  /* Win Screen */
+  #winScreen { background: #0a1a0a; overflow: hidden; }
+  .win-content { position: relative; z-index: 5; text-align: center; }
+  .win-icon { font-size: 80px; display: block; margin-bottom: 12px; animation: trophy 1.2s ease-in-out infinite alternate; }
+  .win-title { font-size: 28px; color: var(--yellow-gold); text-shadow: 4px 4px 0 #7a5500; margin-bottom: 16px; }
+  .win-text { font-size: 10px; color: #aaffaa; line-height: 2.4; margin-bottom: 32px; max-width: 500px; }
+  .fireworks { position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; }
+
+  /* Journey review */
+  .journey-strip {
+    margin-top: 12px;
+    font-size: 18px; letter-spacing: 8px;
+    color: var(--white);
+  }
+
+  /* Map icons */
+  .map-icon { font-size: 14px; }
+
+  /* Animations */
+  @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+  @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+  @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:0.6} }
+  @keyframes trophy { from{transform:scale(1) rotate(-4deg)} to{transform:scale(1.1) rotate(4deg)} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+  @keyframes floatUp { from{transform:translateY(0);opacity:1} to{transform:translateY(-60px);opacity:0} }
+
+  .blink { animation: blink 1s infinite; }
+
+  /* Pixel divider */
+  .px-divider { width: 100%; height: 4px; background: var(--yellow-gold); margin: 20px 0; }
+
+  /* Responsive scale */
+  @media (max-width: 1300px) {
+    #gameContainer { transform: scale(0.85); transform-origin: center; }
+  }
+  @media (max-width: 1100px) {
+    #gameContainer { transform: scale(0.7); }
+  }
+  @media (max-width: 900px) {
+    #gameContainer { transform: scale(0.55); }
+  }
+</style>
+</head>
+<body>
+
+<div id="gameContainer">
+  <!-- CANVAS for pixel art background -->
+  <canvas id="bgCanvas" width="1280" height="720"></canvas>
+
+  <!-- UI OVERLAY -->
+  <div id="ui">
+
+    <!-- HUD (shown during game) -->
+    <div id="hud" style="display:none">
+      <div class="hud-box">
+        ❤️ SAÚDE
+        <div class="health-bar-wrap"><div id="healthBar" style="width:100%"></div></div>
+        <span id="healthText">100%</span>
+      </div>
+      <div class="hud-box" id="progressWrap">
+        🏠
+        <div class="progress-track"><div id="progressBar" style="width:0%"></div></div>
+        🏆
+        <span id="progressText" style="font-size:8px;color:var(--yellow-light)">0/8</span>
+      </div>
+    </div>
+
+    <!-- ─── TITLE SCREEN ─── -->
+    <div class="screen" id="titleScreen">
+      <div class="title-pixel-sky"></div>
+      <div class="title-pixel-ground"></div>
+      <div class="title-stars" id="titleStars"></div>
+
+      <div class="title-content">
+        <span class="title-emoji">⚽</span>
+        <div class="title-main">CAMINHO<br>DA COPA</div>
+        <div class="title-sub">Uma jornada de escolhas</div>
+        <div class="title-flavor">
+          Você foi pré-convocado para a Copa do Mundo.<br>
+          Nos próximos meses, diversas oportunidades surgirão.<br>
+          Algumas serão inesquecíveis.<br>
+          Mas qualquer erro pode custar sua vaga.
+        </div>
+        <button class="pixel-btn" onclick="startGame()">▶ COMEÇAR</button>
+      </div>
+    </div>
+
+    <!-- ─── MYSTERY MODAL ─── -->
+    <div class="screen hidden" id="mysteryModal">
+      <div class="mystery-box">
+        <span class="mystery-icon">❓</span>
+        <div class="mystery-text">EVENTO MISTERIOSO</div>
+        <button class="pixel-btn" onclick="revealEvent()">ABRIR</button>
+      </div>
+    </div>
+
+    <!-- ─── EVENT MODAL ─── -->
+    <div class="screen hidden" id="eventModal">
+      <div class="modal-box">
+        <span class="event-icon" id="evIcon"></span>
+        <div class="event-title" id="evTitle"></div>
+        <div class="event-text" id="evText"></div>
+        <div class="btn-row">
+          <button class="pixel-btn" id="btnParticipate" onclick="chooseParticipate()">🎉 PARTICIPAR</button>
+          <button class="pixel-btn green" onclick="chooseTrain()">⚽ TREINAR</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── RESULT MODAL ─── -->
+    <div class="screen hidden" id="resultModal">
+      <div class="result-box">
+        <span class="result-icon" id="resIcon"></span>
+        <div class="result-text" id="resText"></div>
+        <button class="pixel-btn" onclick="continueGame()">CONTINUAR ›</button>
+      </div>
+    </div>
+
+    <!-- ─── INJURY / GAME OVER ─── -->
+    <div class="screen hidden" id="injuryScreen">
+      <div class="injury-icon injury-flicker">🤕</div>
+      <div class="injury-title">GAME OVER</div>
+      <div class="injury-text" id="injuryText">
+        Você sofreu uma lesão.<br>
+        Sua participação na Copa terminou.
+      </div>
+      <div class="journey-strip" id="gameoverJourney"></div>
+      <br><br>
+      <div style="font-size:8px;color:#888;margin-bottom:24px">📺 Você assiste à Copa pela televisão...</div>
+      <div style="display:flex;gap:20px;">
+        <button class="pixel-btn" onclick="restartGame()">↩ JOGAR NOVAMENTE</button>
+      </div>
+    </div>
+
+    <!-- ─── WIN SCREEN ─── -->
+    <div class="screen hidden" id="winScreen">
+      <canvas class="fireworks" id="fwCanvas" width="1280" height="720"></canvas>
+      <div class="win-content">
+        <span class="win-icon">🏆</span>
+        <div class="win-title">VOCÊ CHEGOU À COPA!</div>
+        <div class="win-text">
+          Parabéns.<br>
+          Você resistiu às tentações<br>
+          e chegou à Copa do Mundo.
+        </div>
+        <div class="journey-strip" id="winJourney"></div>
+        <br><br>
+        <button class="pixel-btn" onclick="restartGame()">↩ JOGAR NOVAMENTE</button>
+      </div>
+    </div>
+
+  </div><!-- /ui -->
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  GAME DATA
+// ══════════════════════════════════════════════
+
+const EVENTS = [
+  {
+    id: 'birthday_sister',
+    icon: '🎂',
+    title: 'ANIVERSÁRIO DA IRMÃ',
+    text: 'Sua irmã organizou uma festa especial.\nEla disse que só falta você chegar.\nO que vai fazer?',
+    injuryChance: 0.10,
+    btnLabel: '🎂 PARTICIPAR'
+  },
+  {
+    id: 'birthday_son',
+    icon: '🎁',
+    title: 'ANIVERSÁRIO DO FILHO',
+    text: 'Seu filho perguntou se você estará presente.\nEle pareceu decepcionado quando você não respondeu.',
+    injuryChance: 0.05,
+    btnLabel: '🎉 PARTICIPAR'
+  },
+  {
+    id: 'carnival_salvador',
+    icon: '🎭',
+    title: 'CARNAVAL DE SALVADOR',
+    text: 'Um amigo enviou vídeos.\nParece que a cidade inteira está em festa.\nEle reservou tudo para você.',
+    injuryChance: 0.35,
+    btnLabel: '🎭 PARTICIPAR'
+  },
+  {
+    id: 'carnival_rio',
+    icon: '🎊',
+    title: 'CARNAVAL DO RIO DE JANEIRO',
+    text: 'Você recebeu acesso VIP para uma das\nmaiores festas do país.\nA oportunidade pode não se repetir.',
+    injuryChance: 0.30,
+    btnLabel: '🎊 PARTICIPAR'
+  },
+  {
+    id: 'cruise',
+    icon: '🚢',
+    title: 'CRUZEIRO DE 3 DIAS',
+    text: 'Três dias no mar.\nTudo pago.\nSem pressão. Sem entrevistas.\nSem treinos.',
+    injuryChance: 0.25,
+    btnLabel: '🚢 PARTICIPAR'
+  },
+  {
+    id: 'kings_league',
+    icon: '👑',
+    title: 'KINGS LEAGUE',
+    text: 'Você recebeu um convite especial.\nMilhões de pessoas vão assistir.\nÉ apenas uma partida.',
+    injuryChance: 0.40,
+    btnLabel: '👑 PARTICIPAR'
+  },
+  {
+    id: 'poker',
+    icon: '♠️',
+    title: 'POKER MILIONÁRIO',
+    text: 'Mesa exclusiva.\nPrêmio milionário.\nGrandes nomes confirmados.',
+    injuryChance: 0.02,
+    btnLabel: '♠️ PARTICIPAR'
+  },
+  {
+    id: 'party_mangaratiba',
+    icon: '🌴',
+    title: 'FESTA EM MANGARATIBA',
+    text: 'Praia. Música.\nAmigos esperando.\nUm final de semana inesquecível.',
+    injuryChance: 0.30,
+    btnLabel: '🌴 PARTICIPAR',
+    isFinal: true
+  }
+];
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+
+let state = {
+  screen: 'title',
+  health: 100,
+  currentEventIndex: 0,
+  journey: ['🏠'],
+  playerX: 0,
+  playerY: 0,
+  playerTargetX: 0,
+  walking: false,
+  phase: 'walking', // walking | mystery | event | result
+  flashRed: 0,
+  celebrationParticles: [],
+  mapNodes: []
+};
+
+// ══════════════════════════════════════════════
+//  CANVAS SETUP
+// ══════════════════════════════════════════════
+
+const canvas = document.getElementById('bgCanvas');
+const ctx = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+// Pixel art helpers
+function px(n) { return Math.round(n); }
+
+function drawRect(x, y, w, h, color) {
+  ctx.fillStyle = color;
+  ctx.fillRect(px(x), px(y), px(w), px(h));
+}
+
+function drawText(text, x, y, size, color, align='left') {
+  ctx.font = `${size}px "Press Start 2P", monospace`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.fillText(text, px(x), px(y));
+}
+
+// ══════════════════════════════════════════════
+//  PIXEL ART SCENE
+// ══════════════════════════════════════════════
+
+function drawScene() {
+  ctx.clearRect(0,0,1280,720);
+
+  if (state.screen !== 'game') return;
+
+  // Sky gradient (pixelated bands)
+  const skyBands = [
+    [0, 160, '#1a2d4a'],
+    [160, 220, '#1e3550'],
+    [220, 300, '#2a4a6e'],
+    [300, 360, '#3a5f80']
+  ];
+  for (const [y1, y2, c] of skyBands) {
+    drawRect(0, y1, 1280, y2-y1, c);
+  }
+
+  // Clouds (pixel style)
+  drawPixelCloud(120, 80, 1.4);
+  drawPixelCloud(450, 55, 1.0);
+  drawPixelCloud(820, 90, 1.2);
+  drawPixelCloud(1100, 65, 0.9);
+
+  // Ground
+  drawRect(0, 360, 1280, 360, '#1e3a10');
+  drawRect(0, 360, 1280, 8, '#3d7a25');
+  // Ground texture (pixel stripes)
+  for (let x = 0; x < 1280; x += 40) {
+    drawRect(x, 368, 2, 352, 'rgba(0,0,0,0.07)');
+  }
+
+  // PATH
+  const pathY = 470;
+  const pathH = 32;
+  // Shadow under path
+  drawRect(60, pathY+4, 1200, pathH+4, 'rgba(0,0,0,0.3)');
+  // Path segments (cobblestone look)
+  for (let x = 60; x < 1220; x += 20) {
+    const alt = Math.floor(x/20) % 2;
+    drawRect(x, pathY, 18, pathH, alt ? '#8b6914' : '#9a7820');
+    // grout
+    drawRect(x, pathY, 18, 2, '#6a4e0a');
+    drawRect(x, pathY+pathH-2, 18, 2, '#6a4e0a');
+  }
+  // Path border
+  drawRect(58, pathY-2, 1, pathH+4, '#c49a3c');
+  drawRect(1221, pathY-2, 1, pathH+4, '#c49a3c');
+
+  // Grass patches
+  drawGrassPatches();
+
+  // Trees
+  drawPixelTree(200, 280, 28);
+  drawPixelTree(350, 295, 22);
+  drawPixelTree(900, 285, 30);
+  drawPixelTree(1050, 278, 25);
+  drawPixelTree(1150, 290, 20);
+
+  // Map nodes
+  drawMapNodes();
+
+  // Player
+  drawPlayer(state.playerX, state.playerY);
+
+  // Red flash overlay
+  if (state.flashRed > 0) {
+    ctx.fillStyle = `rgba(200,0,0,${state.flashRed * 0.6})`;
+    ctx.fillRect(0,0,1280,720);
+    state.flashRed -= 0.04;
+  }
+
+  // Celebration particles
+  drawParticles();
+}
+
+function drawPixelCloud(cx, cy, scale=1) {
+  const s = 12 * scale;
+  const blocks = [
+    [0,0,s*2,s],[s*-1,s*-0.8,s*1.5,s],[s*1,s*-0.7,s*1.5,s]
+  ];
+  for (const [ox, oy, w, h] of blocks) {
+    drawRect(cx+ox, cy+oy, w, h, 'rgba(255,255,255,0.15)');
+    drawRect(cx+ox, cy+oy, w, h-2, 'rgba(255,255,255,0.08)');
+  }
+}
+
+function drawPixelTree(x, y, s=24) {
+  // trunk
+  drawRect(x - s*0.15, y, s*0.3, s*0.6, '#5a3a1a');
+  // foliage layers
+  drawRect(x - s*0.6, y - s*0.5, s*1.2, s*0.6, '#1a5a0a');
+  drawRect(x - s*0.45, y - s, s*0.9, s*0.6, '#2a7a18');
+  drawRect(x - s*0.3, y - s*1.4, s*0.6, s*0.5, '#1e6010');
+  // highlight pixel
+  drawRect(x - s*0.1, y - s*0.9, s*0.15, s*0.15, '#44aa22');
+}
+
+function drawGrassPatches() {
+  const patches = [[100,420],[280,430],[480,410],[650,440],[750,415],[950,435],[1100,420],[1200,408]];
+  for (const [x,y] of patches) {
+    drawRect(x, y, 3, 10, '#3d8a22');
+    drawRect(x+8, y+4, 3, 8, '#2d7018');
+    drawRect(x+16, y+2, 3, 9, '#4a9a28');
+  }
+}
+
+function drawMapNodes() {
+  const total = EVENTS.length;
+  for (let i = 0; i < total; i++) {
+    const nx = getNodeX(i);
+    const ny = 460;
+
+    const completed = i < state.currentEventIndex;
+    const current = i === state.currentEventIndex;
+
+    if (completed) {
+      // Show event icon (completed)
+      ctx.font = '20px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(EVENTS[i].icon, nx, ny - 12);
+      // small green dot
+      drawRect(nx-5, ny, 10, 10, '#22cc44');
+    } else if (current) {
+      // Blinking question mark node
+      const blink = Math.floor(Date.now() / 400) % 2;
+      drawRect(nx-14, ny-28, 28, 28, '#1a3a1a');
+      drawRect(nx-12, ny-26, 24, 24, blink ? '#f5c518' : '#c49a3c');
+      ctx.font = 'bold 16px "Press Start 2P", monospace';
+      ctx.fillStyle = '#0a0a0a';
+      ctx.textAlign = 'center';
+      ctx.fillText('?', nx, ny-10);
+    } else {
+      // Future node (gray)
+      drawRect(nx-12, ny-24, 24, 24, '#333');
+      drawRect(nx-10, ny-22, 20, 20, '#444');
+      ctx.font = 'bold 14px "Press Start 2P", monospace';
+      ctx.fillStyle = '#666';
+      ctx.textAlign = 'center';
+      ctx.fillText('?', nx, ny-7);
+    }
+  }
+
+  // Trophy / finish
+  const tx = getNodeX(total);
+  ctx.font = '28px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('🏆', tx, 458);
+}
+
+function getNodeX(i) {
+  const total = EVENTS.length + 1; // +1 for trophy
+  const start = 120;
+  const end = 1200;
+  const step = (end - start) / (total);
+  return start + step * (i + 0.5);
+}
+
+function drawPlayer(x, y) {
+  // Pixel art footballer (simplified)
+  const px2 = Math.round;
+
+  // Shadow
+  drawRect(x-10, y+34, 20, 6, 'rgba(0,0,0,0.4)');
+
+  // Legs
+  const legAnim = state.walking ? Math.sin(Date.now()/100)*4 : 0;
+  drawRect(x-6, y+22, 5, 12, '#1155cc'); // left
+  drawRect(x+1, y+22+legAnim, 5, 12, '#1155cc'); // right
+  // Boots
+  drawRect(x-7, y+32, 7, 4, '#331100');
+  drawRect(x+0, y+32+legAnim, 7, 4, '#331100');
+  // Body (jersey)
+  drawRect(x-8, y+8, 16, 16, '#22bb44');
+  drawRect(x-2, y+8, 4, 8, '#ffffff'); // stripe
+  // Arms
+  drawRect(x-14, y+10, 6, 10, '#22bb44');
+  drawRect(x+8, y+10, 6, 10, '#22bb44');
+  // Neck
+  drawRect(x-3, y+4, 6, 6, '#d4956a');
+  // Head
+  drawRect(x-8, y-8, 16, 16, '#d4956a');
+  // Hair
+  drawRect(x-8, y-8, 16, 4, '#1a0a00');
+  // Eyes
+  drawRect(x-4, y-1, 3, 3, '#ffffff');
+  drawRect(x+1, y-1, 3, 3, '#ffffff');
+  drawRect(x-3, y, 2, 2, '#0a0a0a');
+  drawRect(x+2, y, 2, 2, '#0a0a0a');
+  // Nose
+  drawRect(x, y+3, 2, 2, '#c07050');
+}
+
+function drawParticles() {
+  for (let i = state.celebrationParticles.length-1; i >= 0; i--) {
+    const p = state.celebrationParticles[i];
+    ctx.globalAlpha = p.life;
+    drawRect(p.x, p.y, 6, 6, p.color);
+    p.x += p.vx; p.y += p.vy; p.vy += 0.3; p.life -= 0.02;
+    if (p.life <= 0) state.celebrationParticles.splice(i, 1);
+  }
+  ctx.globalAlpha = 1;
+}
+
+function spawnCelebration(x, y) {
+  const colors = ['#f5c518','#22cc44','#ffffff','#ff6622','#66aaff'];
+  for (let i = 0; i < 20; i++) {
+    state.celebrationParticles.push({
+      x, y,
+      vx: (Math.random()-0.5)*6,
+      vy: (Math.random()-1)*8,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      life: 1
+    });
+  }
+}
+
+// ══════════════════════════════════════════════
+//  GAME LOOP
+// ══════════════════════════════════════════════
+
+let lastTime = 0;
+function gameLoop(ts) {
+  const dt = ts - lastTime; lastTime = ts;
+
+  if (state.screen === 'game') {
+    updatePlayer(dt);
+    drawScene();
+    updateHUD();
+  }
+
+  requestAnimationFrame(gameLoop);
+}
+requestAnimationFrame(gameLoop);
+
+function updatePlayer(dt) {
+  if (!state.walking) return;
+  const speed = 2.5;
+  const dx = state.playerTargetX - state.playerX;
+  if (Math.abs(dx) < speed + 1) {
+    state.playerX = state.playerTargetX;
+    state.walking = false;
+    onPlayerArrived();
+  } else {
+    state.playerX += Math.sign(dx) * speed;
+  }
+}
+
+function updateHUD() {
+  document.getElementById('healthBar').style.width = state.health + '%';
+  document.getElementById('healthText').textContent = state.health + '%';
+  const prog = (state.currentEventIndex / EVENTS.length) * 100;
+  document.getElementById('progressBar').style.width = prog + '%';
+  document.getElementById('progressText').textContent = state.currentEventIndex + '/' + EVENTS.length;
+}
+
+// ══════════════════════════════════════════════
+//  FLOW CONTROL
+// ══════════════════════════════════════════════
+
+function startGame() {
+  state = {
+    screen: 'game',
+    health: 100,
+    currentEventIndex: 0,
+    journey: ['🏠'],
+    playerX: 80,
+    playerY: 440,
+    playerTargetX: 80,
+    walking: false,
+    phase: 'walking',
+    flashRed: 0,
+    celebrationParticles: [],
+  };
+
+  showScreen('game');
+  document.getElementById('hud').style.display = 'flex';
+
+  // Start walking to first node
+  walkToCurrentNode();
+}
+
+function walkToCurrentNode() {
+  const targetX = getNodeX(state.currentEventIndex) - 4;
+  state.playerTargetX = targetX;
+  state.walking = true;
+  state.phase = 'walking';
+}
+
+function onPlayerArrived() {
+  if (state.currentEventIndex >= EVENTS.length) {
+    // Walked to trophy!
+    winGame();
+    return;
+  }
+  // Show mystery box
+  setTimeout(() => {
+    showScreen('mystery');
+  }, 400);
+}
+
+function revealEvent() {
+  const ev = EVENTS[state.currentEventIndex];
+  document.getElementById('evIcon').textContent = ev.icon;
+  document.getElementById('evTitle').textContent = ev.title;
+  document.getElementById('evText').innerHTML = ev.text.replace(/\n/g,'<br>');
+  document.getElementById('btnParticipate').textContent = ev.btnLabel || '🎉 PARTICIPAR';
+
+  // If final event, make it more dramatic
+  if (ev.isFinal) {
+    document.getElementById('evText').innerHTML += '<br><br><span style="color:#ff6622;font-size:8px">⚠️ ÚLTIMA CHANCE ANTES DA COPA ⚠️</span>';
+  }
+
+  showScreen('event');
+}
+
+function chooseParticipate() {
+  const ev = EVENTS[state.currentEventIndex];
+  playSound('suspense');
+
+  const injured = Math.random() < ev.injuryChance;
+
+  if (injured) {
+    // INJURY
+    state.health = 0;
+    state.flashRed = 3;
+    showScreen('game');
+
+    setTimeout(() => {
+      const journeyStr = state.journey.join('──');
+      document.getElementById('gameoverJourney').textContent = journeyStr + '──💔';
+      showScreen('injury');
+    }, 800);
+  } else {
+    // SUCCESS
+    state.journey.push(ev.icon);
+    document.getElementById('resIcon').textContent = '✅';
+    document.getElementById('resText').innerHTML =
+      `Você foi ao <strong>${ev.title}</strong><br>e voltou normalmente.<br><br><span style="font-size:8px;color:#aaffaa">Ufa! Sem lesões.</span>`;
+    spawnCelebration(state.playerX, state.playerY);
+    showScreen('result');
+  }
+}
+
+function chooseTrain() {
+  const ev = EVENTS[state.currentEventIndex];
+  state.journey.push('⚽');
+  document.getElementById('resIcon').textContent = '💪';
+  document.getElementById('resText').innerHTML =
+    `Você recusou o <strong>${ev.title}</strong><br>e continuou treinando.<br><br><span style="font-size:8px;color:#aaddff">Foco total na Copa.</span>`;
+  showScreen('result');
+}
+
+function continueGame() {
+  state.currentEventIndex++;
+
+  if (state.currentEventIndex >= EVENTS.length) {
+    // All events done, walk to trophy
+    const trophyX = getNodeX(EVENTS.length) - 4;
+    state.playerTargetX = trophyX;
+    state.walking = true;
+    state.phase = 'walking';
+    showScreen('game');
+    return;
+  }
+
+  walkToCurrentNode();
+  showScreen('game');
+}
+
+function winGame() {
+  const journeyStr = state.journey.join('──');
+  document.getElementById('winJourney').textContent = journeyStr + '──🏆';
+  showScreen('win');
+  startFireworks();
+}
+
+function restartGame() {
+  document.getElementById('hud').style.display = 'none';
+  showScreen('title');
+}
+
+// ══════════════════════════════════════════════
+//  SCREEN MANAGEMENT
+// ══════════════════════════════════════════════
+
+function showScreen(name) {
+  const screens = {
+    'title': 'titleScreen',
+    'game': null,
+    'mystery': 'mysteryModal',
+    'event': 'eventModal',
+    'result': 'resultModal',
+    'injury': 'injuryScreen',
+    'win': 'winScreen'
+  };
+
+  // Hide all modals
+  ['titleScreen','mysteryModal','eventModal','resultModal','injuryScreen','winScreen'].forEach(id => {
+    document.getElementById(id).classList.add('hidden');
+  });
+
+  state.screen = name;
+
+  if (name !== 'game' && screens[name]) {
+    document.getElementById(screens[name]).classList.remove('hidden');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FIREWORKS
+// ══════════════════════════════════════════════
+
+function startFireworks() {
+  const fw = document.getElementById('fwCanvas');
+  const fc = fw.getContext('2d');
+  let particles = [];
+
+  function launch() {
+    const colors = ['#f5c518','#22cc44','#ffffff','#ff6622','#66aaff','#ff44aa'];
+    const x = Math.random() * 1280;
+    const y = 100 + Math.random() * 300;
+    for (let i = 0; i < 40; i++) {
+      const angle = (Math.PI*2/40)*i;
+      const speed = 3 + Math.random()*4;
+      particles.push({
+        x, y,
+        vx: Math.cos(angle)*speed,
+        vy: Math.sin(angle)*speed,
+        color: colors[Math.floor(Math.random()*colors.length)],
+        life: 1
+      });
+    }
+  }
+
+  let fwInterval = setInterval(launch, 600);
+  launch();
+
+  function fwLoop() {
+    fc.clearRect(0,0,1280,720);
+    for (let i = particles.length-1; i >= 0; i--) {
+      const p = particles[i];
+      fc.globalAlpha = p.life;
+      fc.fillStyle = p.color;
+      fc.fillRect(Math.round(p.x), Math.round(p.y), 6, 6);
+      p.x += p.vx; p.y += p.vy; p.vy += 0.08; p.life -= 0.018;
+      if (p.life <= 0) particles.splice(i,1);
+    }
+    fc.globalAlpha = 1;
+    if (document.getElementById('winScreen') && !document.getElementById('winScreen').classList.contains('hidden')) {
+      requestAnimationFrame(fwLoop);
+    } else {
+      clearInterval(fwInterval);
+    }
+  }
+  fwLoop();
+}
+
+// ══════════════════════════════════════════════
+//  SOUND (Web Audio API procedural)
+// ══════════════════════════════════════════════
+
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playSound(type) {
+  try {
+    const ac = getAudio();
+    if (type === 'suspense') {
+      // Descending tones
+      for (let i = 0; i < 3; i++) {
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+        osc.connect(gain); gain.connect(ac.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(400 - i*80, ac.currentTime + i*0.18);
+        gain.gain.setValueAtTime(0.08, ac.currentTime + i*0.18);
+        gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + i*0.18 + 0.15);
+        osc.start(ac.currentTime + i*0.18);
+        osc.stop(ac.currentTime + i*0.18 + 0.15);
+      }
+    } else if (type === 'select') {
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.connect(gain); gain.connect(ac.destination);
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(880, ac.currentTime);
+      osc.frequency.setValueAtTime(1100, ac.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.06, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + 0.2);
+      osc.start(); osc.stop(ac.currentTime + 0.2);
+    }
+  } catch(e) {}
+}
+
+// ══════════════════════════════════════════════
+//  TITLE SCREEN STARS
+// ══════════════════════════════════════════════
+
+(function setupStars() {
+  const container = document.getElementById('titleStars');
+  for (let i = 0; i < 60; i++) {
+    const star = document.createElement('div');
+    star.className = 'star';
+    star.style.left = Math.random()*100 + '%';
+    star.style.top = Math.random()*35 + '%';
+    star.style.opacity = 0.3 + Math.random()*0.7;
+    star.style.width = star.style.height = (Math.random() > 0.7 ? 6 : 4) + 'px';
+    if (Math.random() > 0.7) star.classList.add('blink');
+    container.appendChild(star);
+  }
+})();
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  // Allow pressing Enter/Space on mystery/event modals if visible
+  if (e.key === 'Enter' || e.key === ' ') {
+    if (!document.getElementById('mysteryModal').classList.contains('hidden')) {
+      revealEvent();
+    }
+  }
+});
+
+// Start the loop
+console.log('⚽ Caminho da Copa carregado!');
+</script>
+</body>
+</html>
