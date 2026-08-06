@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="theme-color" content="#14091f" />
-  <title>Meia Rinha — PagoMeia</title>
-  <meta name="description" content="Crie campeonatos eliminatórios de filmes, séries, games, personagens e muito mais." />
+  <title>Ralinha</title>
+  <meta name="description" content="Crie o seu ralinha de filmes, séries, games, personagens e muito mais." />
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -420,8 +420,8 @@
           <div class="hero">
             <div>
               <div class="eyebrow">🏆 Jogo eliminatório PagoMeia</div>
-              <h1>Meia <span>Rinha.</span></h1>
-              <p>Monte um campeonato com filmes, séries, games, personagens ou qualquer tema. O chaveamento é sorteado, você escolhe os vencedores e no fim salva o resultado para o seu histórico.</p>
+              <h1>Ralinha</span></h1>
+              <p>Monte o seu ralinha com filmes, séries, games, personagens ou qualquer tema. O chaveamento é sorteado, você escolhe os vencedores e no fim salva o resultado para o seu histórico.</p>
               <div class="hero-actions">
                 <button class="btn btn-primary" id="startBtn">⚔️ Iniciar jogo</button>
                 <button class="btn btn-ghost" data-go="history">🗂️ Ver histórico</button>
@@ -430,7 +430,7 @@
 
             <div class="hero-card">
               <div class="preview-title">
-                <strong>PRÉVIA DO CONFRONTO</strong>
+                <strong>PRÉVIA DO RALINHA</strong>
                 <span class="live-pill">AO VIVO</span>
               </div>
               <div class="vs-preview">
@@ -449,8 +449,8 @@
         <section class="screen" id="screen-setup">
           <div class="section-head">
             <div>
-              <div class="eyebrow">01 — Monte seu campeonato</div>
-              <h2>Quem entra na rinha?</h2>
+              <div class="eyebrow">01 — Monte seu ralinha</div>
+              <h2>Quem entra no ralinha?</h2>
               <p>Escolha o tema, defina a quantidade e preencha os participantes. Todos precisam ter um título.</p>
             </div>
           </div>
@@ -458,7 +458,7 @@
           <div class="setup-grid">
             <aside class="panel setup-sidebar">
               <div class="field">
-                <label for="tournamentTitle">Título do campeonato</label>
+                <label for="tournamentTitle">Título do ralinha</label>
                 <input class="input" id="tournamentTitle" maxlength="70" placeholder="Ex.: Melhores filmes de herói" />
               </div>
               <div class="field">
@@ -499,7 +499,7 @@
 
             <div class="battle-progress">
               <div class="progress-row">
-                <span id="progressText">Progresso do campeonato</span>
+                <span id="progressText">Progresso do ralinha</span>
                 <span id="progressPercent">0%</span>
               </div>
               <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -518,7 +518,7 @@
         <section class="screen" id="screen-result">
           <div class="result-card" id="resultCard">
             <div class="trophy">🏆</div>
-            <div class="eyebrow">Campeão da Meia Rinha</div>
+            <div class="eyebrow">Campeão do Ralinha!</div>
             <h2 id="resultTitle">Temos um vencedor!</h2>
             <p class="subtitle" id="resultSubtitle"></p>
             <div class="champion-image" id="championImage"></div>
@@ -536,7 +536,7 @@
           <div class="section-head">
             <div>
               <div class="eyebrow">Arquivo PagoMeia</div>
-              <h2>Histórico de rinhas</h2>
+              <h2>Histórico de ralinhas</h2>
               <p>Reabra campeonatos finalizados, baixe os arquivos novamente ou apague registros antigos.</p>
             </div>
             <button class="btn btn-primary" id="historyNewBtn">+ Nova rinha</button>
@@ -549,7 +549,7 @@
     <footer>
       <div class="footer-inner">
         <div><b style="color:#fff">PagoMeia</b> — A sua meia-entrada para a cultura pop.</div>
-        <div>Meia Rinha • jogo para lives e comunidade</div>
+        <div>Ralinha • jogo para lives e comunidade</div>
       </div>
     </footer>
   </div>
@@ -774,7 +774,7 @@
   function validateSetup(){
     const title=$("#tournamentTitle").value.trim();
     state.title=title;
-    if(!title){showToast("Digite o título do campeonato.");return false;}
+    if(!title){showToast("Digite o título do ralinha.");return false;}
     const missing=state.participants.findIndex(p=>!p.title.trim());
     if(missing>=0){showToast(`Preencha o participante ${missing+1}.`);return false;}
     return true;
@@ -989,8 +989,8 @@
     if(!history.length){
       grid.innerHTML=`<div class="panel empty-history" style="grid-column:1/-1">
         <div style="font-size:48px;margin-bottom:12px">🗂️</div>
-        <b style="color:#fff">Nenhum campeonato salvo ainda.</b>
-        <p style="margin-top:8px">Finalize uma Meia Rinha para ela aparecer aqui.</p>
+        <b style="color:#fff">Nenhum ralinha salvo ainda.</b>
+        <p style="margin-top:8px">Finalize um ralinha para ele aparecer aqui.</p>
       </div>`;
       return;
     }
@@ -998,7 +998,7 @@
       const champ=item.rounds?.at(-1)?.[0]?.winner?.title||"Sem campeão";
       return `<article class="history-card">
         <div class="date">${formatDate(item.createdAt)}</div>
-        <h3>${escapeHtml(item.title||"Campeonato")}</h3>
+        <h3>${escapeHtml(item.title||"Ralinha")}</h3>
         <p>🏆 ${escapeHtml(champ)} • ${item.participants?.length||0} participantes</p>
         <div class="history-actions">
           <button data-open-history="${item.id}">Abrir</button>
@@ -1027,7 +1027,7 @@
   }
 
   function deleteHistory(id){
-    openModal("Apagar campeonato","Esse registro será removido do histórico deste navegador.",()=>{
+    openModal("Apagar ralinha","Esse registro será removido do histórico deste navegador.",()=>{
       const history=getHistory().filter(x=>x.id!==id);
       localStorage.setItem(STORAGE_HISTORY,JSON.stringify(history));
       renderHistory();
@@ -1082,7 +1082,7 @@
           $("#tournamentTitle").value=state.title||"";
           renderParticipants();go("setup");
         }
-        showToast("Campeonato importado.");
+        showToast("Ralinha importado.");
       }catch{
         showToast("Arquivo JSON inválido.");
       }
@@ -1118,7 +1118,7 @@
     ctx.textAlign="center";
     ctx.fillStyle="#d7b3ff";
     ctx.font="900 28px Inter, Arial";
-    ctx.fillText("PAGOMEIA • MEIA RINHA",540,92);
+    ctx.fillText("PAGOMEIA • RALINHA",540,92);
 
     ctx.fillStyle="#ffffff";
     ctx.font="900 82px Inter, Arial";
@@ -1260,7 +1260,7 @@
     try{
       const active=JSON.parse(localStorage.getItem(STORAGE_ACTIVE));
       if(active && active.status==="playing"){
-        openModal("Continuar campeonato?","Encontramos uma Meia Rinha que ainda não terminou.",()=>{
+        openModal("Continuar ralinha?","Encontramos um ralinha que ainda não terminou.",()=>{
           Object.assign(state,active);
           renderBattle();
           go("battle");
