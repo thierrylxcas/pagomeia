@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#14091f" />
+  <title>Meia Rinha — PagoMeia</title>
+  <meta name="description" content="Crie campeonatos eliminatórios de filmes, séries, games, personagens e muito mais." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg:#14091f;
+      --bg-2:#1d0d2a;
+      --surface:#231231;
+      --surface-2:#2d183f;
+      --surface-3:#3a2050;
+      --text:#ffffff;
+      --muted:#c8bcd3;
+      --purple:#9d4edd;
+      --purple-2:#c77dff;
+      --pink:#ff3d8d;
+      --red:#ff284d;
+      --yellow:#ffd166;
+      --green:#70e1a1;
+      --border:rgba(255,255,255,.10);
+      --shadow:0 24px 70px rgba(0,0,0,.38);
+      --radius:24px;
+      --radius-sm:16px;
+    }
+
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{
+      margin:0;
+      min-height:100vh;
+      background:
+        radial-gradient(circle at 15% 0%, rgba(157,78,221,.18), transparent 30%),
+        radial-gradient(circle at 92% 12%, rgba(255,40,77,.12), transparent 32%),
+        linear-gradient(180deg,var(--bg),#0f0717 100%);
+      color:var(--text);
+      font-family:"Inter",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+      font-weight:500;
+    }
+
+    button,input,select{font:inherit}
+    button{cursor:pointer}
+    img{max-width:100%;display:block}
+
+    .top-line{
+      position:fixed;inset:0 0 auto 0;height:4px;z-index:50;
+      background:linear-gradient(90deg,#8b5cf6,#d946ef,#ff284d);
+    }
+
+    .app-shell{min-height:100vh;display:flex;flex-direction:column}
+    header{
+      position:sticky;top:0;z-index:40;
+      background:rgba(20,9,31,.82);
+      backdrop-filter:blur(18px);
+      border-bottom:1px solid var(--border);
+    }
+
+    .header-inner{
+      width:min(1220px,calc(100% - 32px));
+      margin:auto;
+      height:78px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+    }
+
+    .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+    .brand-mark{
+      width:44px;height:44px;border-radius:50%;
+      display:grid;place-items:center;
+      font-weight:900;font-size:13px;letter-spacing:-.05em;
+      background:
+        radial-gradient(circle at 32% 28%,#fff 0 10%,transparent 11%),
+        linear-gradient(145deg,#d8a7ff,#7b2cbf 55%,#3c096c);
+      box-shadow:0 0 25px rgba(199,125,255,.35);
+      border:2px solid rgba(255,255,255,.45);
+    }
+    .brand-copy b{display:block;font-size:16px;letter-spacing:-.03em}
+    .brand-copy span{display:block;color:var(--muted);font-size:11px;margin-top:3px}
+
+    .header-actions{display:flex;align-items:center;gap:10px}
+    .mini-btn{
+      border:1px solid var(--border);background:rgba(255,255,255,.04);color:#fff;
+      border-radius:999px;padding:10px 14px;font-size:12px;font-weight:800;
+      transition:.2s ease;
+    }
+    .mini-btn:hover{transform:translateY(-2px);background:rgba(255,255,255,.08)}
+
+    main{flex:1}
+    .container{width:min(1220px,calc(100% - 32px));margin:auto;padding:56px 0 90px}
+
+    .screen{display:none;animation:fadeIn .32s ease}
+    .screen.active{display:block}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+    .hero{
+      display:grid;grid-template-columns:1.15fr .85fr;gap:44px;align-items:center;
+      min-height:calc(100vh - 230px);
+    }
+    .eyebrow{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 12px;border-radius:999px;
+      background:rgba(157,78,221,.16);color:#d9b4ff;
+      border:1px solid rgba(199,125,255,.22);
+      font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;
+    }
+    h1,h2,h3,p{margin-top:0}
+    .hero h1{
+      font-size:clamp(58px,8vw,112px);
+      line-height:.86;letter-spacing:-.075em;margin:22px 0 24px;font-weight:900;
+    }
+    .hero h1 span{
+      display:block;
+      background:linear-gradient(90deg,#fff 5%,#cf9cff 55%,#ff4d79);
+      -webkit-background-clip:text;background-clip:text;color:transparent;
+    }
+    .hero p{font-size:18px;line-height:1.65;color:var(--muted);max-width:680px}
+    .hero-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:30px}
+
+    .btn{
+      border:0;border-radius:14px;padding:15px 22px;
+      color:#fff;font-weight:900;font-size:14px;
+      display:inline-flex;align-items:center;justify-content:center;gap:10px;
+      transition:.2s ease;
+    }
+    .btn:hover{transform:translateY(-2px)}
+    .btn-primary{
+      background:linear-gradient(135deg,#9d4edd,#ff284d);
+      box-shadow:0 14px 30px rgba(157,78,221,.25);
+    }
+    .btn-secondary{background:#fff;color:#160a20}
+    .btn-ghost{background:rgba(255,255,255,.06);border:1px solid var(--border)}
+    .btn-danger{background:rgba(255,40,77,.12);border:1px solid rgba(255,40,77,.26);color:#ff9ab1}
+    .btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+
+    .hero-card{
+      min-height:480px;border-radius:34px;padding:26px;
+      background:
+        linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.02)),
+        linear-gradient(180deg,#2b143c,#160b21);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:var(--shadow);
+      position:relative;overflow:hidden;
+    }
+    .hero-card:before{
+      content:"";position:absolute;width:260px;height:260px;border-radius:50%;
+      right:-70px;top:-80px;background:rgba(255,40,77,.20);filter:blur(10px)
+    }
+    .hero-card:after{
+      content:"";position:absolute;width:240px;height:240px;border-radius:50%;
+      left:-110px;bottom:-110px;background:rgba(157,78,221,.25);filter:blur(15px)
+    }
+    .preview-title{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:center}
+    .preview-title strong{font-size:14px}
+    .live-pill{
+      font-size:10px;font-weight:900;color:#ff9ab1;padding:7px 9px;border-radius:999px;
+      background:rgba(255,40,77,.10);border:1px solid rgba(255,40,77,.25)
+    }
+    .vs-preview{
+      position:relative;z-index:2;
+      display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:12px;
+      margin-top:68px;
+    }
+    .preview-player{
+      aspect-ratio:3/4;border-radius:22px;overflow:hidden;
+      background:linear-gradient(160deg,#43265b,#21102d);
+      border:1px solid rgba(255,255,255,.12);
+      display:flex;align-items:flex-end;padding:16px;
+      position:relative;
+    }
+    .preview-player.one{background:linear-gradient(160deg,#5a189a,#240046)}
+    .preview-player.two{background:linear-gradient(160deg,#b5174d,#3d0719)}
+    .preview-player:before{
+      content:"";position:absolute;inset:15%;
+      border-radius:50%;background:rgba(255,255,255,.08);filter:blur(18px)
+    }
+    .preview-player b{position:relative;z-index:2;font-size:15px}
+    .vs-badge{
+      width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+      font-weight:900;font-style:italic;
+      background:#fff;color:#170b21;
+      box-shadow:0 0 0 8px rgba(255,255,255,.06);
+    }
+    .preview-progress{position:relative;z-index:2;margin-top:40px}
+    .preview-progress small{color:var(--muted);font-size:11px}
+    .bar{height:7px;background:rgba(255,255,255,.08);border-radius:99px;margin-top:10px;overflow:hidden}
+    .bar span{display:block;width:62%;height:100%;background:linear-gradient(90deg,#c77dff,#ff284d);border-radius:99px}
+
+    .section-head{display:flex;justify-content:space-between;gap:20px;align-items:flex-end;margin-bottom:28px}
+    .section-head h2{font-size:clamp(32px,5vw,58px);letter-spacing:-.055em;margin-bottom:8px}
+    .section-head p{color:var(--muted);margin:0;max-width:650px;line-height:1.6}
+
+    .panel{
+      background:rgba(255,255,255,.045);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:24px;
+      box-shadow:0 18px 55px rgba(0,0,0,.18);
+    }
+
+    .setup-grid{display:grid;grid-template-columns:360px 1fr;gap:24px;align-items:start}
+    .setup-sidebar{position:sticky;top:104px}
+    .field{margin-bottom:20px}
+    .field label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:#d7c8e2;margin-bottom:9px}
+    .input,.select{
+      width:100%;border-radius:14px;border:1px solid var(--border);
+      background:rgba(255,255,255,.055);color:#fff;padding:14px 15px;outline:none;
+      transition:.2s ease;
+    }
+    .input:focus,.select:focus{border-color:#a855f7;box-shadow:0 0 0 4px rgba(168,85,247,.12)}
+    .select option{color:#111}
+    .helper{font-size:12px;color:var(--muted);line-height:1.5}
+    .sidebar-actions{display:grid;gap:10px;margin-top:26px}
+
+    .participants-grid{
+      display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;
+    }
+    .participant-card{
+      border:1px solid var(--border);border-radius:20px;padding:14px;
+      background:rgba(255,255,255,.035);transition:.2s ease;
+    }
+    .participant-card:hover{border-color:rgba(199,125,255,.36)}
+    .image-drop{
+      aspect-ratio:16/10;border-radius:15px;overflow:hidden;position:relative;
+      background:
+        linear-gradient(135deg,rgba(157,78,221,.12),rgba(255,40,77,.06)),
+        rgba(255,255,255,.025);
+      border:1px dashed rgba(255,255,255,.16);
+      display:grid;place-items:center;text-align:center;padding:16px;
+    }
+    .image-drop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+    .image-drop .empty{position:relative;z-index:2;color:var(--muted);font-size:11px;line-height:1.45}
+    .image-drop .empty b{display:block;color:#fff;font-size:13px;margin-bottom:5px}
+    .card-fields{display:grid;gap:9px;margin-top:12px}
+    .small-input{
+      width:100%;border-radius:11px;border:1px solid var(--border);
+      background:rgba(255,255,255,.045);color:#fff;padding:11px 12px;outline:none;font-size:12px;
+    }
+    .file-label{
+      display:flex;align-items:center;justify-content:center;gap:7px;
+      border-radius:10px;padding:10px;background:rgba(157,78,221,.13);
+      color:#ddb7ff;font-size:11px;font-weight:800;cursor:pointer;
+    }
+    .file-label input{display:none}
+
+    .battle-wrap{max-width:980px;margin:auto}
+    .battle-meta{text-align:center;margin-bottom:26px}
+    .round-label{
+      display:inline-block;color:#d6adff;background:rgba(157,78,221,.14);
+      border:1px solid rgba(199,125,255,.22);padding:8px 12px;border-radius:999px;
+      text-transform:uppercase;letter-spacing:.09em;font-size:11px;font-weight:900;
+    }
+    .battle-meta h2{font-size:clamp(36px,6vw,72px);letter-spacing:-.06em;margin:18px 0 8px}
+    .battle-meta p{color:var(--muted);margin:0}
+    .battle-stage{
+      display:grid;grid-template-columns:1fr 92px 1fr;gap:18px;align-items:center;
+    }
+    .fighter{
+      border:1px solid var(--border);border-radius:28px;overflow:hidden;
+      background:rgba(255,255,255,.045);
+      transition:.25s ease;position:relative;
+    }
+    .fighter:hover{transform:translateY(-6px);border-color:rgba(199,125,255,.6);box-shadow:0 25px 60px rgba(0,0,0,.28)}
+    .fighter.selected{border-color:var(--green);box-shadow:0 0 0 4px rgba(112,225,161,.12)}
+    .fighter.loser{opacity:.28;filter:grayscale(1);transform:scale(.96)}
+    .fighter-image{aspect-ratio:4/5;background:#22112f;overflow:hidden}
+    .fighter-image img{width:100%;height:100%;object-fit:cover}
+    .fighter-placeholder{height:100%;display:grid;place-items:center;font-size:64px;font-weight:900;color:rgba(255,255,255,.12)}
+    .fighter-copy{padding:20px}
+    .fighter-copy small{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em}
+    .fighter-copy h3{font-size:clamp(20px,3vw,32px);letter-spacing:-.04em;margin:7px 0 0}
+    .battle-vs{
+      width:78px;height:78px;border-radius:50%;display:grid;place-items:center;
+      background:#fff;color:#170b21;font-size:24px;font-weight:900;font-style:italic;
+      box-shadow:0 0 0 10px rgba(255,255,255,.05);
+      margin:auto;
+    }
+    .battle-progress{margin-top:28px}
+    .progress-row{display:flex;justify-content:space-between;color:var(--muted);font-size:11px;margin-bottom:10px}
+    .progress-track{height:8px;background:rgba(255,255,255,.08);border-radius:99px;overflow:hidden}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#9d4edd,#ff284d);width:0%;transition:.35s ease}
+    .battle-toolbar{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:24px}
+
+    .result-card{
+      position:relative;overflow:hidden;text-align:center;
+      background:
+        radial-gradient(circle at 50% 15%,rgba(255,209,102,.18),transparent 30%),
+        linear-gradient(145deg,rgba(157,78,221,.16),rgba(255,40,77,.06)),
+        rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:34px;padding:38px;box-shadow:var(--shadow)
+    }
+    .trophy{font-size:72px;filter:drop-shadow(0 10px 25px rgba(255,209,102,.25))}
+    .result-card h2{font-size:clamp(42px,7vw,82px);letter-spacing:-.07em;margin:8px 0 6px}
+    .result-card .subtitle{color:var(--muted);margin-bottom:26px}
+    .champion-image{
+      width:min(390px,100%);aspect-ratio:4/5;margin:0 auto 24px;border-radius:24px;overflow:hidden;
+      background:#2a1738;border:1px solid rgba(255,255,255,.14);box-shadow:0 20px 50px rgba(0,0,0,.35)
+    }
+    .champion-image img{width:100%;height:100%;object-fit:cover}
+    .champion-name{font-size:clamp(30px,5vw,56px);font-weight:900;letter-spacing:-.055em;margin-bottom:28px}
+    .result-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+
+    .history-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+    .history-card{
+      background:rgba(255,255,255,.04);border:1px solid var(--border);
+      border-radius:20px;padding:18px;transition:.2s ease;
+    }
+    .history-card:hover{transform:translateY(-4px);border-color:rgba(199,125,255,.38)}
+    .history-card .date{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em}
+    .history-card h3{font-size:20px;letter-spacing:-.03em;margin:10px 0 8px}
+    .history-card p{color:#d9cde2;font-size:13px;margin-bottom:16px}
+    .history-actions{display:flex;gap:8px}
+    .history-actions button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.04);color:#fff;font-size:11px;font-weight:800}
+    .empty-history{text-align:center;padding:70px 20px;color:var(--muted)}
+
+    .bracket-view{
+      margin-top:28px;overflow:auto;padding:18px;border:1px solid var(--border);
+      border-radius:20px;background:rgba(255,255,255,.025)
+    }
+    .bracket-grid{display:flex;gap:18px;min-width:max-content;align-items:stretch}
+    .bracket-round{width:210px;display:flex;flex-direction:column;gap:12px}
+    .bracket-round h4{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#d7b3ff;margin:0 0 4px}
+    .bracket-match{display:grid;gap:6px}
+    .bracket-player{
+      border:1px solid var(--border);background:rgba(255,255,255,.04);border-radius:10px;
+      padding:10px 11px;font-size:11px;color:#d9cfe1;min-height:38px;
+    }
+    .bracket-player.winner{border-color:rgba(112,225,161,.35);color:#baf6d0}
+
+    footer{border-top:1px solid var(--border);padding:28px 0;background:rgba(10,4,15,.48)}
+    .footer-inner{
+      width:min(1220px,calc(100% - 32px));margin:auto;
+      display:flex;justify-content:space-between;gap:20px;align-items:center;
+      color:#9e91a8;font-size:11px;
+    }
+
+    .toast{
+      position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);
+      background:#fff;color:#170b21;padding:13px 18px;border-radius:999px;
+      font-size:12px;font-weight:900;opacity:0;pointer-events:none;transition:.25s ease;z-index:100;
+      box-shadow:0 16px 40px rgba(0,0,0,.3)
+    }
+    .toast.show{opacity:1;transform:translate(-50%,0)}
+
+    .modal{
+      position:fixed;inset:0;background:rgba(6,2,10,.78);backdrop-filter:blur(10px);
+      display:none;place-items:center;padding:20px;z-index:90;
+    }
+    .modal.open{display:grid}
+    .modal-box{
+      width:min(520px,100%);background:#21102e;border:1px solid var(--border);
+      border-radius:24px;padding:24px;box-shadow:var(--shadow);
+    }
+    .modal-box h3{font-size:26px;letter-spacing:-.04em;margin-bottom:8px}
+    .modal-box p{color:var(--muted);font-size:13px;line-height:1.6}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:22px}
+
+    @media(max-width:900px){
+      .hero{grid-template-columns:1fr;min-height:auto}
+      .hero-card{min-height:420px}
+      .setup-grid{grid-template-columns:1fr}
+      .setup-sidebar{position:static}
+      .history-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+      .battle-stage{grid-template-columns:1fr}
+      .battle-vs{width:58px;height:58px}
+      .fighter-image{aspect-ratio:16/9}
+    }
+    @media(max-width:620px){
+      .brand-copy span{display:none}
+      .header-actions .mini-btn:first-child{display:none}
+      .container{padding-top:34px}
+      .hero h1{font-size:58px}
+      .hero-card{min-height:360px;padding:18px}
+      .vs-preview{margin-top:48px}
+      .participants-grid,.history-grid{grid-template-columns:1fr}
+      .section-head{align-items:flex-start;flex-direction:column}
+      .result-card{padding:26px 18px}
+      .footer-inner{flex-direction:column;align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <div class="top-line"></div>
+  <div class="app-shell">
+    <header>
+      <div class="header-inner">
+        <a href="#" class="brand" data-go="home">
+          <div class="brand-mark">PAGO<br>MEIA</div>
+          <div class="brand-copy">
+            <b>PagoMeia | Cultura Pop</b>
+            <span>A sua meia-entrada para a cultura pop.</span>
+          </div>
+        </a>
+        <div class="header-actions">
+          <button class="mini-btn" data-go="history">Histórico</button>
+          <button class="mini-btn" id="importTopBtn">Importar JSON</button>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <div class="container">
+
+        <section class="screen active" id="screen-home">
+          <div class="hero">
+            <div>
+              <div class="eyebrow">🏆 Jogo eliminatório PagoMeia</div>
+              <h1>Meia <span>Rinha.</span></h1>
+              <p>Monte um campeonato com filmes, séries, games, personagens ou qualquer tema. O chaveamento é sorteado, você escolhe os vencedores e no fim salva o resultado para o seu histórico.</p>
+              <div class="hero-actions">
+                <button class="btn btn-primary" id="startBtn">⚔️ Iniciar jogo</button>
+                <button class="btn btn-ghost" data-go="history">🗂️ Ver histórico</button>
+              </div>
+            </div>
+
+            <div class="hero-card">
+              <div class="preview-title">
+                <strong>PRÉVIA DO CONFRONTO</strong>
+                <span class="live-pill">AO VIVO</span>
+              </div>
+              <div class="vs-preview">
+                <div class="preview-player one"><b>Homem-Aranha 2</b></div>
+                <div class="vs-badge">VS</div>
+                <div class="preview-player two"><b>Homem de Ferro</b></div>
+              </div>
+              <div class="preview-progress">
+                <small>Quartas de final • Confronto 3 de 4</small>
+                <div class="bar"><span></span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen" id="screen-setup">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">01 — Monte seu campeonato</div>
+              <h2>Quem entra na rinha?</h2>
+              <p>Escolha o tema, defina a quantidade e preencha os participantes. Todos precisam ter um título.</p>
+            </div>
+          </div>
+
+          <div class="setup-grid">
+            <aside class="panel setup-sidebar">
+              <div class="field">
+                <label for="tournamentTitle">Título do campeonato</label>
+                <input class="input" id="tournamentTitle" maxlength="70" placeholder="Ex.: Melhores filmes de herói" />
+              </div>
+              <div class="field">
+                <label for="participantCount">Quantidade de participantes</label>
+                <select class="select" id="participantCount">
+                  <option value="4">4 participantes</option>
+                  <option value="8" selected>8 participantes</option>
+                  <option value="16">16 participantes</option>
+                  <option value="32">32 participantes</option>
+                  <option value="64">64 participantes</option>
+                </select>
+              </div>
+              <p class="helper">As imagens ficam salvas no seu navegador. Para campeonatos grandes, use imagens leves para não ultrapassar o armazenamento local.</p>
+              <div class="sidebar-actions">
+                <button class="btn btn-primary" id="shuffleBtn">🎲 Sortear chaveamento</button>
+                <button class="btn btn-ghost" id="saveDraftBtn">💾 Salvar rascunho</button>
+                <button class="btn btn-danger" data-go="home">Cancelar</button>
+              </div>
+            </aside>
+
+            <div class="participants-grid" id="participantsGrid"></div>
+          </div>
+        </section>
+
+        <section class="screen" id="screen-battle">
+          <div class="battle-wrap">
+            <div class="battle-meta">
+              <span class="round-label" id="roundLabel">Quartas de final</span>
+              <h2 id="battleTitle">Escolha quem avança</h2>
+              <p id="battleCounter">Confronto 1 de 4</p>
+            </div>
+
+            <div class="battle-stage">
+              <button class="fighter" id="fighterA" aria-label="Escolher participante da esquerda"></button>
+              <div class="battle-vs">VS</div>
+              <button class="fighter" id="fighterB" aria-label="Escolher participante da direita"></button>
+            </div>
+
+            <div class="battle-progress">
+              <div class="progress-row">
+                <span id="progressText">Progresso do campeonato</span>
+                <span id="progressPercent">0%</span>
+              </div>
+              <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+
+            <div class="battle-toolbar">
+              <button class="btn btn-ghost" id="bracketBtn">🌳 Ver chaveamento</button>
+              <button class="btn btn-ghost" id="exportLiveBtn">⬇️ Exportar parcial</button>
+              <button class="btn btn-danger" id="resetBtn">Reiniciar</button>
+            </div>
+
+            <div class="bracket-view" id="bracketView" hidden></div>
+          </div>
+        </section>
+
+        <section class="screen" id="screen-result">
+          <div class="result-card" id="resultCard">
+            <div class="trophy">🏆</div>
+            <div class="eyebrow">Campeão da Meia Rinha</div>
+            <h2 id="resultTitle">Temos um vencedor!</h2>
+            <p class="subtitle" id="resultSubtitle"></p>
+            <div class="champion-image" id="championImage"></div>
+            <div class="champion-name" id="championName"></div>
+            <div class="result-actions">
+              <button class="btn btn-primary" id="downloadPngBtn">🖼️ Baixar resultado em PNG</button>
+              <button class="btn btn-secondary" id="downloadJsonBtn">⬇️ Baixar JSON</button>
+              <button class="btn btn-ghost" id="newGameBtn">Nova rinha</button>
+            </div>
+            <div class="bracket-view" id="resultBracket"></div>
+          </div>
+        </section>
+
+        <section class="screen" id="screen-history">
+          <div class="section-head">
+            <div>
+              <div class="eyebrow">Arquivo PagoMeia</div>
+              <h2>Histórico de rinhas</h2>
+              <p>Reabra campeonatos finalizados, baixe os arquivos novamente ou apague registros antigos.</p>
+            </div>
+            <button class="btn btn-primary" id="historyNewBtn">+ Nova rinha</button>
+          </div>
+          <div class="history-grid" id="historyGrid"></div>
+        </section>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-inner">
+        <div><b style="color:#fff">PagoMeia</b> — A sua meia-entrada para a cultura pop.</div>
+        <div>Meia Rinha • jogo para lives e comunidade</div>
+      </div>
+    </footer>
+  </div>
+
+  <input type="file" id="jsonImporter" accept=".json,application/json" hidden>
+  <div class="toast" id="toast"></div>
+
+  <div class="modal" id="confirmModal">
+    <div class="modal-box">
+      <h3 id="modalTitle">Confirmar ação</h3>
+      <p id="modalText">Tem certeza?</p>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="modalCancel">Cancelar</button>
+        <button class="btn btn-primary" id="modalConfirm">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  "use strict";
+
+  const $ = (s, el=document) => el.querySelector(s);
+  const $$ = (s, el=document) => [...el.querySelectorAll(s)];
+
+  const STORAGE_ACTIVE = "pagomeia_meia_rinha_active_v1";
+  const STORAGE_HISTORY = "pagomeia_meia_rinha_history_v1";
+  const STORAGE_DRAFT = "pagomeia_meia_rinha_draft_v1";
+
+  const screens = {
+    home: $("#screen-home"),
+    setup: $("#screen-setup"),
+    battle: $("#screen-battle"),
+    result: $("#screen-result"),
+    history: $("#screen-history")
+  };
+
+  const state = {
+    title: "",
+    createdAt: null,
+    participants: [],
+    rounds: [],
+    currentRound: 0,
+    currentMatch: 0,
+    status: "setup"
+  };
+
+  let modalAction = null;
+  let lockPick = false;
+
+  function uid(){
+    return (crypto.randomUUID?.() || ("id-"+Date.now()+"-"+Math.random().toString(16).slice(2)));
+  }
+
+  function showToast(message){
+    const toast = $("#toast");
+    toast.textContent = message;
+    toast.classList.add("show");
+    clearTimeout(showToast.timer);
+    showToast.timer = setTimeout(() => toast.classList.remove("show"), 2200);
+  }
+
+  function go(screen){
+    Object.values(screens).forEach(s => s.classList.remove("active"));
+    screens[screen].classList.add("active");
+    window.scrollTo({top:0, behavior:"smooth"});
+    if(screen === "history") renderHistory();
+  }
+
+  function openModal(title, text, action){
+    $("#modalTitle").textContent = title;
+    $("#modalText").textContent = text;
+    modalAction = action;
+    $("#confirmModal").classList.add("open");
+  }
+
+  function closeModal(){
+    $("#confirmModal").classList.remove("open");
+    modalAction = null;
+  }
+
+  $("#modalCancel").addEventListener("click", closeModal);
+  $("#modalConfirm").addEventListener("click", () => {
+    const fn = modalAction;
+    closeModal();
+    if(fn) fn();
+  });
+
+  function blankParticipant(index){
+    return { id: uid(), title: "", image: "", seed: index + 1 };
+  }
+
+  function resetState(count=8){
+    state.title = "";
+    state.createdAt = null;
+    state.participants = Array.from({length:count}, (_,i)=>blankParticipant(i));
+    state.rounds = [];
+    state.currentRound = 0;
+    state.currentMatch = 0;
+    state.status = "setup";
+    lockPick = false;
+  }
+
+  function escapeHtml(str=""){
+    return str.replace(/[&<>"']/g, c => ({
+      "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+    }[c]));
+  }
+
+  function renderParticipants(){
+    const grid = $("#participantsGrid");
+    grid.innerHTML = state.participants.map((p,i)=>`
+      <article class="participant-card" data-id="${p.id}">
+        <div class="image-drop">
+          ${p.image ? `<img src="${p.image}" alt="">` : ""}
+          <div class="empty" ${p.image ? 'style="display:none"' : ""}>
+            <b>Imagem do participante</b>
+            Upload ou URL
+          </div>
+        </div>
+        <div class="card-fields">
+          <input class="small-input participant-title" maxlength="70" placeholder="Título do participante ${i+1}" value="${escapeHtml(p.title)}">
+          <input class="small-input participant-url" placeholder="Cole uma URL de imagem" value="${p.image && !p.image.startsWith("data:") ? escapeHtml(p.image) : ""}">
+          <label class="file-label">📷 Escolher imagem
+            <input class="participant-file" type="file" accept="image/*">
+          </label>
+        </div>
+      </article>
+    `).join("");
+
+    $$(".participant-card",grid).forEach(card=>{
+      const id = card.dataset.id;
+      const title = $(".participant-title",card);
+      const url = $(".participant-url",card);
+      const file = $(".participant-file",card);
+      const imgBox = $(".image-drop",card);
+
+      title.addEventListener("input",()=>{
+        state.participants.find(p=>p.id===id).title = title.value;
+      });
+
+      url.addEventListener("change",()=>{
+        const p = state.participants.find(p=>p.id===id);
+        p.image = url.value.trim();
+        renderParticipants();
+      });
+
+      file.addEventListener("change", async()=>{
+        const f = file.files[0];
+        if(!f) return;
+        if(f.size > 4 * 1024 * 1024){
+          showToast("Use uma imagem de até 4 MB.");
+          file.value="";
+          return;
+        }
+        const data = await fileToDataURL(f);
+        const p = state.participants.find(p=>p.id===id);
+        p.image = await compressImage(data, 900, .82);
+        renderParticipants();
+      });
+
+      imgBox.addEventListener("dragover",e=>{e.preventDefault();imgBox.style.borderColor="#c77dff"});
+      imgBox.addEventListener("dragleave",()=>imgBox.style.borderColor="");
+      imgBox.addEventListener("drop",async e=>{
+        e.preventDefault();imgBox.style.borderColor="";
+        const f=e.dataTransfer.files[0];
+        if(!f || !f.type.startsWith("image/")) return;
+        const data=await fileToDataURL(f);
+        const p=state.participants.find(p=>p.id===id);
+        p.image=await compressImage(data,900,.82);
+        renderParticipants();
+      });
+    });
+  }
+
+  function fileToDataURL(file){
+    return new Promise((resolve,reject)=>{
+      const r=new FileReader();
+      r.onload=()=>resolve(r.result);
+      r.onerror=reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  function compressImage(src,maxWidth=900,quality=.82){
+    return new Promise(resolve=>{
+      const img=new Image();
+      img.onload=()=>{
+        if(img.width<=maxWidth){resolve(src);return;}
+        const ratio=maxWidth/img.width;
+        const canvas=document.createElement("canvas");
+        canvas.width=maxWidth;
+        canvas.height=Math.round(img.height*ratio);
+        canvas.getContext("2d").drawImage(img,0,0,canvas.width,canvas.height);
+        resolve(canvas.toDataURL("image/jpeg",quality));
+      };
+      img.onerror=()=>resolve(src);
+      img.src=src;
+    });
+  }
+
+  function shuffle(arr){
+    const a=[...arr];
+    for(let i=a.length-1;i>0;i--){
+      const j=Math.floor(Math.random()*(i+1));
+      [a[i],a[j]]=[a[j],a[i]];
+    }
+    return a;
+  }
+
+  function roundName(total, roundIndex){
+    const remaining = total / Math.pow(2, roundIndex);
+    if(remaining === 2) return "Final";
+    if(remaining === 4) return "Semifinal";
+    if(remaining === 8) return "Quartas de final";
+    if(remaining === 16) return "Oitavas de final";
+    if(remaining === 32) return "16 avos de final";
+    if(remaining === 64) return "32 avos de final";
+    return `Rodada ${roundIndex+1}`;
+  }
+
+  function validateSetup(){
+    const title=$("#tournamentTitle").value.trim();
+    state.title=title;
+    if(!title){showToast("Digite o título do campeonato.");return false;}
+    const missing=state.participants.findIndex(p=>!p.title.trim());
+    if(missing>=0){showToast(`Preencha o participante ${missing+1}.`);return false;}
+    return true;
+  }
+
+  function startTournament(){
+    if(!validateSetup()) return;
+    const seeded=shuffle(state.participants).map((p,i)=>({...p,seed:i+1}));
+    const firstMatches=[];
+    for(let i=0;i<seeded.length;i+=2){
+      firstMatches.push({
+        id:uid(),
+        a:seeded[i],
+        b:seeded[i+1],
+        winner:null
+      });
+    }
+    state.participants=seeded;
+    state.rounds=[firstMatches];
+    state.currentRound=0;
+    state.currentMatch=0;
+    state.createdAt=new Date().toISOString();
+    state.status="playing";
+    saveActive();
+    go("battle");
+    renderBattle();
+  }
+
+  function fighterMarkup(p, side){
+    if(!p) return `<div class="fighter-image"><div class="fighter-placeholder">?</div></div><div class="fighter-copy"><small>${side}</small><h3>Aguardando</h3></div>`;
+    return `
+      <div class="fighter-image">
+        ${p.image ? `<img src="${p.image}" alt="${escapeHtml(p.title)}">` : `<div class="fighter-placeholder">${escapeHtml(p.title.charAt(0).toUpperCase())}</div>`}
+      </div>
+      <div class="fighter-copy">
+        <small>${side}</small>
+        <h3>${escapeHtml(p.title)}</h3>
+      </div>`;
+  }
+
+  function totalMatches(){
+    return state.participants.length - 1;
+  }
+
+  function completedMatches(){
+    return state.rounds.reduce((n,r)=>n+r.filter(m=>m.winner).length,0);
+  }
+
+  function renderBattle(){
+    const round=state.rounds[state.currentRound];
+    const match=round?.[state.currentMatch];
+    if(!match){ finalizeTournament(); return; }
+
+    $("#roundLabel").textContent=roundName(state.participants.length,state.currentRound);
+    $("#battleTitle").textContent=state.title;
+    $("#battleCounter").textContent=`Confronto ${state.currentMatch+1} de ${round.length}`;
+    $("#fighterA").innerHTML=fighterMarkup(match.a,"Participante A");
+    $("#fighterB").innerHTML=fighterMarkup(match.b,"Participante B");
+    $("#fighterA").className="fighter";
+    $("#fighterB").className="fighter";
+
+    const done=completedMatches();
+    const pct=Math.round((done/totalMatches())*100);
+    $("#progressFill").style.width=pct+"%";
+    $("#progressPercent").textContent=pct+"%";
+    $("#progressText").textContent=`${done} de ${totalMatches()} escolhas concluídas`;
+    $("#bracketView").hidden=true;
+    lockPick=false;
+  }
+
+  function chooseWinner(side){
+    if(lockPick) return;
+    lockPick=true;
+    const match=state.rounds[state.currentRound][state.currentMatch];
+    const winner=side==="a"?match.a:match.b;
+    const loser=side==="a"?match.b:match.a;
+    match.winner=winner;
+
+    const winEl=side==="a"?$("#fighterA"):$("#fighterB");
+    const loseEl=side==="a"?$("#fighterB"):$("#fighterA");
+    winEl.classList.add("selected");
+    loseEl.classList.add("loser");
+
+    saveActive();
+    setTimeout(()=>advanceMatch(winner,loser),700);
+  }
+
+  function advanceMatch(){
+    const round=state.rounds[state.currentRound];
+
+    if(state.currentMatch < round.length-1){
+      state.currentMatch++;
+      saveActive();
+      renderBattle();
+      return;
+    }
+
+    const winners=round.map(m=>m.winner);
+    if(winners.length===1){
+      finalizeTournament();
+      return;
+    }
+
+    const next=[];
+    for(let i=0;i<winners.length;i+=2){
+      next.push({id:uid(),a:winners[i],b:winners[i+1],winner:null});
+    }
+    state.rounds.push(next);
+    state.currentRound++;
+    state.currentMatch=0;
+    saveActive();
+    renderBattle();
+  }
+
+  function finalizeTournament(){
+    state.status="finished";
+    const lastRound=state.rounds[state.rounds.length-1];
+    const champion=lastRound?.[0]?.winner;
+    if(!champion) return;
+
+    localStorage.removeItem(STORAGE_ACTIVE);
+    saveToHistory();
+    renderResult();
+    go("result");
+  }
+
+  function renderResult(){
+    const champion=state.rounds.at(-1)?.[0]?.winner;
+    if(!champion) return;
+    $("#resultSubtitle").textContent=state.title;
+    $("#championName").textContent=champion.title;
+    $("#championImage").innerHTML=champion.image
+      ? `<img src="${champion.image}" alt="${escapeHtml(champion.title)}">`
+      : `<div class="fighter-placeholder" style="height:100%">${escapeHtml(champion.title.charAt(0))}</div>`;
+    $("#resultBracket").innerHTML=buildBracketHtml();
+  }
+
+  function buildBracketHtml(){
+    return `<div class="bracket-grid">${
+      state.rounds.map((round,ri)=>`
+        <div class="bracket-round">
+          <h4>${roundName(state.participants.length,ri)}</h4>
+          ${round.map(match=>`
+            <div class="bracket-match">
+              <div class="bracket-player ${match.winner?.id===match.a?.id?"winner":""}">${escapeHtml(match.a?.title||"Aguardando")}</div>
+              <div class="bracket-player ${match.winner?.id===match.b?.id?"winner":""}">${escapeHtml(match.b?.title||"Aguardando")}</div>
+            </div>
+          `).join("")}
+        </div>
+      `).join("")
+    }</div>`;
+  }
+
+  function saveActive(){
+    try{localStorage.setItem(STORAGE_ACTIVE,JSON.stringify(state));}
+    catch{showToast("O navegador ficou sem espaço para salvar as imagens.");}
+  }
+
+  function saveDraft(){
+    state.title=$("#tournamentTitle").value.trim();
+    try{
+      localStorage.setItem(STORAGE_DRAFT,JSON.stringify({
+        title:state.title,
+        participants:state.participants,
+        count:state.participants.length
+      }));
+      showToast("Rascunho salvo neste navegador.");
+    }catch{showToast("Não foi possível salvar o rascunho.");}
+  }
+
+  function loadDraft(){
+    try{
+      const draft=JSON.parse(localStorage.getItem(STORAGE_DRAFT));
+      if(!draft) return false;
+      state.title=draft.title||"";
+      state.participants=draft.participants||[];
+      $("#participantCount").value=String(draft.count||state.participants.length||8);
+      $("#tournamentTitle").value=state.title;
+      renderParticipants();
+      return true;
+    }catch{return false;}
+  }
+
+  function getHistory(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_HISTORY))||[]}
+    catch{return []}
+  }
+
+  function saveToHistory(){
+    const history=getHistory();
+    const record=JSON.parse(JSON.stringify({...state,id:uid()}));
+    history.unshift(record);
+    try{
+      localStorage.setItem(STORAGE_HISTORY,JSON.stringify(history.slice(0,30)));
+      state.id=record.id;
+    }catch{
+      const light={...record,participants:record.participants.map(p=>({...p,image:""})),rounds:record.rounds.map(r=>r.map(m=>({
+        ...m,
+        a:m.a?{...m.a,image:""}:null,
+        b:m.b?{...m.b,image:""}:null,
+        winner:m.winner?{...m.winner,image:""}:null
+      })))};
+      history.unshift(light);
+      localStorage.setItem(STORAGE_HISTORY,JSON.stringify(history.slice(0,30)));
+      showToast("Histórico salvo sem imagens por falta de espaço.");
+    }
+  }
+
+  function renderHistory(){
+    const history=getHistory();
+    const grid=$("#historyGrid");
+    if(!history.length){
+      grid.innerHTML=`<div class="panel empty-history" style="grid-column:1/-1">
+        <div style="font-size:48px;margin-bottom:12px">🗂️</div>
+        <b style="color:#fff">Nenhum campeonato salvo ainda.</b>
+        <p style="margin-top:8px">Finalize uma Meia Rinha para ela aparecer aqui.</p>
+      </div>`;
+      return;
+    }
+    grid.innerHTML=history.map(item=>{
+      const champ=item.rounds?.at(-1)?.[0]?.winner?.title||"Sem campeão";
+      return `<article class="history-card">
+        <div class="date">${formatDate(item.createdAt)}</div>
+        <h3>${escapeHtml(item.title||"Campeonato")}</h3>
+        <p>🏆 ${escapeHtml(champ)} • ${item.participants?.length||0} participantes</p>
+        <div class="history-actions">
+          <button data-open-history="${item.id}">Abrir</button>
+          <button data-export-history="${item.id}">JSON</button>
+          <button data-delete-history="${item.id}">Apagar</button>
+        </div>
+      </article>`;
+    }).join("");
+
+    $$("[data-open-history]",grid).forEach(btn=>btn.onclick=()=>openHistory(btn.dataset.openHistory));
+    $$("[data-export-history]",grid).forEach(btn=>btn.onclick=()=>exportHistory(btn.dataset.exportHistory));
+    $$("[data-delete-history]",grid).forEach(btn=>btn.onclick=()=>deleteHistory(btn.dataset.deleteHistory));
+  }
+
+  function formatDate(iso){
+    try{return new Intl.DateTimeFormat("pt-BR",{dateStyle:"medium",timeStyle:"short"}).format(new Date(iso))}
+    catch{return ""}
+  }
+
+  function openHistory(id){
+    const item=getHistory().find(x=>x.id===id);
+    if(!item) return;
+    Object.assign(state,JSON.parse(JSON.stringify(item)));
+    renderResult();
+    go("result");
+  }
+
+  function deleteHistory(id){
+    openModal("Apagar campeonato","Esse registro será removido do histórico deste navegador.",()=>{
+      const history=getHistory().filter(x=>x.id!==id);
+      localStorage.setItem(STORAGE_HISTORY,JSON.stringify(history));
+      renderHistory();
+      showToast("Campeonato apagado.");
+    });
+  }
+
+  function exportHistory(id){
+    const item=getHistory().find(x=>x.id===id);
+    if(item) downloadJson(item);
+  }
+
+  function downloadJson(data=state){
+    const clean={
+      app:"PagoMeia — Meia Rinha",
+      version:1,
+      exportedAt:new Date().toISOString(),
+      tournament:data
+    };
+    const blob=new Blob([JSON.stringify(clean,null,2)],{type:"application/json"});
+    downloadBlob(blob,slug(data.title||"meia-rinha")+".json");
+  }
+
+  function downloadBlob(blob,name){
+    const a=document.createElement("a");
+    a.href=URL.createObjectURL(blob);
+    a.download=name;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500);
+  }
+
+  function slug(str){
+    return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+      .replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,60)||"meia-rinha";
+  }
+
+  function importJson(file){
+    const reader=new FileReader();
+    reader.onload=()=>{
+      try{
+        const parsed=JSON.parse(reader.result);
+        const imported=parsed.tournament||parsed;
+        if(!imported.participants || !Array.isArray(imported.participants)) throw new Error();
+        Object.assign(state,imported);
+        if(state.status==="finished"){
+          renderResult();go("result");
+        }else if(state.status==="playing"){
+          saveActive();renderBattle();go("battle");
+        }else{
+          $("#participantCount").value=String(state.participants.length);
+          $("#tournamentTitle").value=state.title||"";
+          renderParticipants();go("setup");
+        }
+        showToast("Campeonato importado.");
+      }catch{
+        showToast("Arquivo JSON inválido.");
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  function createResultPng(){
+    const champion=state.rounds.at(-1)?.[0]?.winner;
+    if(!champion) return;
+
+    const canvas=document.createElement("canvas");
+    canvas.width=1080;canvas.height=1350;
+    const ctx=canvas.getContext("2d");
+
+    const grad=ctx.createLinearGradient(0,0,1080,1350);
+    grad.addColorStop(0,"#2b123c");
+    grad.addColorStop(.5,"#160a20");
+    grad.addColorStop(1,"#0f0717");
+    ctx.fillStyle=grad;ctx.fillRect(0,0,1080,1350);
+
+    const glow=ctx.createRadialGradient(540,280,0,540,280,520);
+    glow.addColorStop(0,"rgba(157,78,221,.45)");
+    glow.addColorStop(1,"rgba(157,78,221,0)");
+    ctx.fillStyle=glow;ctx.fillRect(0,0,1080,800);
+
+    ctx.fillStyle="#c77dff";
+    ctx.fillRect(0,0,700,8);
+    const lg=ctx.createLinearGradient(700,0,1080,0);
+    lg.addColorStop(0,"#d946ef");lg.addColorStop(1,"#ff284d");
+    ctx.fillStyle=lg;ctx.fillRect(700,0,380,8);
+
+    ctx.textAlign="center";
+    ctx.fillStyle="#d7b3ff";
+    ctx.font="900 28px Inter, Arial";
+    ctx.fillText("PAGOMEIA • MEIA RINHA",540,92);
+
+    ctx.fillStyle="#ffffff";
+    ctx.font="900 82px Inter, Arial";
+    ctx.fillText("CAMPEÃO",540,190);
+
+    ctx.fillStyle="#c8bcd3";
+    ctx.font="700 28px Inter, Arial";
+    fitText(ctx,state.title,900,540,240);
+
+    const drawBottom=()=>{
+      ctx.fillStyle="#ffffff";
+      ctx.font="900 62px Inter, Arial";
+      fitText(ctx,champion.title,900,540,1135);
+      ctx.fillStyle="#c8bcd3";
+      ctx.font="600 23px Inter, Arial";
+      ctx.fillText(formatDate(state.createdAt),540,1195);
+
+      ctx.strokeStyle="rgba(255,255,255,.12)";
+      ctx.lineWidth=2;
+      ctx.beginPath();ctx.moveTo(140,1240);ctx.lineTo(940,1240);ctx.stroke();
+
+      ctx.fillStyle="#ffffff";
+      ctx.font="900 24px Inter, Arial";
+      ctx.fillText("A sua meia-entrada para a cultura pop.",540,1295);
+
+      canvas.toBlob(blob=>downloadBlob(blob,slug(state.title)+"-campeao.png"),"image/png");
+    };
+
+    const x=270,y=310,w=540,h=720;
+    roundRect(ctx,x,y,w,h,34);
+    ctx.fillStyle="#261433";ctx.fill();
+
+    if(champion.image){
+      const img=new Image();
+      img.crossOrigin="anonymous";
+      img.onload=()=>{
+        ctx.save();roundRect(ctx,x,y,w,h,34);ctx.clip();
+        drawCover(ctx,img,x,y,w,h);
+        ctx.restore();
+        drawBottom();
+      };
+      img.onerror=drawBottom;
+      img.src=champion.image;
+    }else{
+      ctx.fillStyle="rgba(255,255,255,.12)";
+      ctx.font="900 180px Inter, Arial";
+      ctx.fillText(champion.title.charAt(0).toUpperCase(),540,750);
+      drawBottom();
+    }
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    const rr=Math.min(r,w/2,h/2);
+    ctx.beginPath();
+    ctx.moveTo(x+rr,y);ctx.arcTo(x+w,y,x+w,y+h,rr);
+    ctx.arcTo(x+w,y+h,x,y+h,rr);ctx.arcTo(x,y+h,x,y,rr);
+    ctx.arcTo(x,y,x+w,y,rr);ctx.closePath();
+  }
+
+  function drawCover(ctx,img,x,y,w,h){
+    const ir=img.width/img.height, rr=w/h;
+    let sx=0,sy=0,sw=img.width,sh=img.height;
+    if(ir>rr){sw=img.height*rr;sx=(img.width-sw)/2}
+    else{sh=img.width/rr;sy=(img.height-sh)/2}
+    ctx.drawImage(img,sx,sy,sw,sh,x,y,w,h);
+  }
+
+  function fitText(ctx,text,maxWidth,x,y){
+    let size=parseInt(ctx.font.match(/\d+/)?.[0]||32);
+    const family=ctx.font.replace(/^\S+\s+\d+px\s+/,"");
+    const weight=ctx.font.split(" ")[0];
+    while(ctx.measureText(text).width>maxWidth && size>20){
+      size-=2;ctx.font=`${weight} ${size}px ${family}`;
+    }
+    ctx.fillText(text,x,y);
+  }
+
+  function newGame(){
+    resetState(Number($("#participantCount").value)||8);
+    $("#tournamentTitle").value="";
+    $("#participantCount").value="8";
+    renderParticipants();
+    go("setup");
+  }
+
+  $("#startBtn").addEventListener("click",newGame);
+  $("#historyNewBtn").addEventListener("click",newGame);
+  $("#newGameBtn").addEventListener("click",newGame);
+
+  $$("[data-go]").forEach(el=>el.addEventListener("click",e=>{
+    e.preventDefault();
+    go(el.dataset.go);
+  }));
+
+  $("#participantCount").addEventListener("change",()=>{
+    const count=Number($("#participantCount").value);
+    const old=state.participants;
+    state.participants=Array.from({length:count},(_,i)=>old[i]||blankParticipant(i));
+    renderParticipants();
+  });
+
+  $("#shuffleBtn").addEventListener("click",startTournament);
+  $("#saveDraftBtn").addEventListener("click",saveDraft);
+  $("#fighterA").addEventListener("click",()=>chooseWinner("a"));
+  $("#fighterB").addEventListener("click",()=>chooseWinner("b"));
+
+  $("#bracketBtn").addEventListener("click",()=>{
+    const box=$("#bracketView");
+    box.hidden=!box.hidden;
+    if(!box.hidden) box.innerHTML=buildBracketHtml();
+  });
+
+  $("#exportLiveBtn").addEventListener("click",()=>downloadJson(state));
+  $("#downloadJsonBtn").addEventListener("click",()=>downloadJson(state));
+  $("#downloadPngBtn").addEventListener("click",createResultPng);
+
+  $("#resetBtn").addEventListener("click",()=>{
+    openModal("Reiniciar campeonato","Todo o progresso atual será apagado.",()=>{
+      localStorage.removeItem(STORAGE_ACTIVE);
+      newGame();
+    });
+  });
+
+  $("#importTopBtn").addEventListener("click",()=>$("#jsonImporter").click());
+  $("#jsonImporter").addEventListener("change",()=>{
+    const f=$("#jsonImporter").files[0];
+    if(f) importJson(f);
+    $("#jsonImporter").value="";
+  });
+
+  window.addEventListener("beforeunload",()=>{
+    if(state.status==="playing") saveActive();
+  });
+
+  function boot(){
+    resetState(8);
+    renderParticipants();
+
+    try{
+      const active=JSON.parse(localStorage.getItem(STORAGE_ACTIVE));
+      if(active && active.status==="playing"){
+        openModal("Continuar campeonato?","Encontramos uma Meia Rinha que ainda não terminou.",()=>{
+          Object.assign(state,active);
+          renderBattle();
+          go("battle");
+        });
+      }else{
+        loadDraft();
+      }
+    }catch{}
+  }
+
+  boot();
+})();
+</script>
+</body>
+</html>
