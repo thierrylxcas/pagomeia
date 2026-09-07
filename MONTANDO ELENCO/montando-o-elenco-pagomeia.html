@@ -101,12 +101,18 @@ function newOptions(){let a=[...eligible()].sort(()=>Math.random()-.5),limit=S.e
 function renderPeople(search=false){let locked=S.eventActive?.kind==="locked",blind=S.eventActive?.kind==="blind",a=search&&!locked?eligible().filter(p=>p.name.toLowerCase().includes($("#search").value.toLowerCase())).slice(0,16):S.opts;$("#search").disabled=!!locked;$$(".toolbar .btn").forEach(b=>b.disabled=!!locked||S.eventActive?.kind==="four");$("#poolCount").textContent=`${eligible().length} nomes disponíveis no banco desta regra`;$("#people").innerHTML=a.map(p=>`<button class="person" onclick='choose(${JSON.stringify(p.name)})'><div class="pic" ${blind?"":`data-w="${encodeURIComponent(p.name)}"`}>${blind?"?":p.name[0]}</div><div class="pn">${p.name}</div></button>`).join("");if(!blind)loadPeoplePics()}
 async function characterImage(box,name){
  try{
-  const title=CHAR_WIKI[name];
-  if(!title) return;
-  let u=`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=thumbnail&pithumbsize=900&redirects=1&format=json&origin=*`;
+  const title=CHAR_WIKI[name] || name;
+  let u=`https://en.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&piprop=thumbnail&pithumbsize=900&pilicense=any&redirects=1&format=json&origin=*`;
   let j=await(await fetch(u)).json(),p=Object.values(j.query?.pages||{})[0],s=p?.thumbnail?.source;
-  if(s) box.innerHTML=`<img src="${s}" alt="${name}">`;
- }catch{}
+  if(s){ box.innerHTML=`<img src="${s}" alt="${name}">`; return; }
+
+  // fallback: search the character article, still allowing Wikipedia's non-free thumbnail
+  u=`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(name)}&gsrnamespace=0&gsrlimit=3&prop=pageimages&piprop=thumbnail&pithumbsize=900&pilicense=any&format=json&origin=*`;
+  j=await(await fetch(u)).json();
+  const pages=Object.values(j.query?.pages||{});
+  const hit=pages.find(x=>x.thumbnail?.source);
+  if(hit?.thumbnail?.source) box.innerHTML=`<img src="${hit.thumbnail.source}" alt="${name}">`;
+ }catch(e){ console.warn("Imagem de personagem indisponível:",name,e); }
 }
 async function wikiImage(box,q){try{let u=`https://pt.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(q)}&gsrlimit=1&prop=pageimages&piprop=thumbnail&pithumbsize=600&format=json&origin=*`,j=await(await fetch(u)).json(),p=Object.values(j.query?.pages||{})[0],s=p?.thumbnail?.source;if(s)box.innerHTML=`<img src="${s}">`}catch{}}
 function loadPeoplePics(){for(let b of $$("[data-w]"))wikiImage(b,decodeURIComponent(b.dataset.w))}
